@@ -49,17 +49,21 @@ function generateTreePlacements(): TreePlacement[] {
     add(-332, z, 1.15, idx++);
   }
 
-  // 5. Main avenue from Roundabout SW & NW
-  for (let x = -310; x <= -35; x += 14) {
-    const z = x * -0.08;
-    add(x, z - 8, 1.0, idx++);
-    add(x, z + 8, 1.0, idx++);
+  // 5. Main Entrance Pedestrian Avenue (between Stadium & Courts) + Blue Vehicle Road
+  for (let x = -305; x <= -100; x += 15) {
+    add(x, 106, 0.95, idx++);
+    add(x, 91, 0.95, idx++);
   }
-  for (let t = 0; t < 12; t++) {
-    const z = -30 - t * 14;
-    const x = -18 - t * 3.5;
-    add(x - 8, z, 0.95, idx++);
-    add(x + 8, z, 0.95, idx++);
+  for (let x = -280; x <= -100; x += 16) {
+    add(x, -15, 1.0, idx++);
+  }
+
+  // 5b. North avenue from Roundabout toward 小学部 & 梅苑/竹苑
+  for (let t = 0; t < 11; t++) {
+    const z = -26 - t * 15;
+    const x = 4 + t * 1.8;
+    add(x - 7, z, 0.95, idx++);
+    add(x + 7, z, 0.95, idx++);
   }
 
   // 6. 寻真园 & 种植区 perimeter grove

@@ -67,16 +67,16 @@ export const BUILDINGS: BuildingSpec[] = [
   {
     id: 'west-gate',
     nameZh: '西北门 · 校园主入口',
-    nameEn: 'Northwest Main Gate',
+    nameEn: 'Main School Gate (SW Entrance)',
     zone: 'south',
-    position: [-325, 0, 18],
+    position: [-318, 0, 112],
     rotationY: 0,
     dimensions: [16, 6, 22],
     stories: 1,
     roofColor: '#1e293b',
     wallColor: '#cbd5e1',
-    description: '临东风大道校园主出入口，设有石材门柱、校名竖匾及人车分流道闸。',
-    cameraOffset: [32, 16, 28],
+    description: '临东风大道与太子湖北路交汇处校园主入口，直通主体育场南侧主干道及中心花坛。',
+    cameraOffset: [38, 18, 28],
   },
 
   // ================= ZONE B: CENTRAL ACADEMIC & CULTURAL =================
@@ -327,9 +327,9 @@ export const CAMERA_PRESETS: CameraPreset[] = [
   },
   {
     id: 'west-gate',
-    labelZh: '西北门入口',
+    labelZh: '校园主入口 (校门)',
     labelEn: 'Main Gate',
-    position: [-290, 18, 45],
-    target: [-325, 3, 18],
+    position: [-275, 22, 138],
+    target: [-318, 3, 112],
   },
 ];

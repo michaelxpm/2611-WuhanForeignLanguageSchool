@@ -116,6 +116,25 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Pan southeast of the stadium to inspect the 6 red basketball courts (with hoops) and 2 teal tennis courts along `太子湖北路`.
   - [ ] Pan over the campus avenues and `北太子湖` shoreline to verify lush instanced trees and smooth orbit FPS.
 
+---
+
+## Phase 5 Fix — Precision Alignment, Octagonal Dormitory & Z-Fighting Resolution
+- **Status**: Completed
+- **Git Tag**: `phase-5-fix` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-5-fix))
+- **Working Steps**:
+  1. Rebuilt `初中部宿舍 · 八角楼` in `NorthZoneBuildings.tsx` using 8 parametric `WingBlock` segments arranged in an octagon (proper window bays, concrete floor-slab ledges, overhanging pitched slate roofs, ridge caps, and inner octagonal courtyard lawn).
+  2. Eliminated all Z-fighting/flickering on `小操场`, `小足球场`, white roads behind `梅苑`/`竹苑`, and `主体育场` by flattening the peninsula turf to `y = 0.01`, enforcing a strict non-overlapping elevation hierarchy (`roads y=0.07..0.09`, `tracks y=0.14`, `pitches y=0.18`), and replacing circular `ringGeometry` lane lines with true stadium-oval lane geometry.
+  3. Remapped `西北门 · 校园主入口` to the SW corner (`[-318, 0, 112]`) and rebuilt the exact road network from your annotated satellite/cutout maps: the red main pedestrian avenue between `主体育场` and the 8 courts, the blue vehicle road behind the grandstand & `寻真园`, the triangular lawn (`三角绿地`) & asymmetric avenues around `中心花坛`, the NW fork behind `小学部教学楼`/`梅苑`/`竹苑`, the East perimeter road, and the zig-zag garden path in `寻真园`.
+- **How to Access Phase 5 Fix**:
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-5-fix`
+  - **Local**: `git checkout phase-5-fix && npm.cmd install && npm.cmd run dev` (or `git checkout main`)
+- **Highlight**: Crisp 8-wing octagonal dormitory, zero surface flickering at any zoom level, and faithful road/gate/plaza alignment matching the annotated satellite maps.
+- **Validation Checklist**:
+  - [ ] Zoom in on `初中部宿舍 · 八角楼`: verify 8 pitched-roof wings with crisp window bays and inner courtyard.
+  - [ ] Zoom in closely on `小操场`, `小足球场`, and the white road behind `梅苑`/`竹苑`: verify zero flickering/disappearing.
+  - [ ] Click `校园主入口 (校门)` preset: verify the gate sits at the SW corner and the main white avenue runs between `主体育场` and the 8 courts toward `中心花坛` and its triangular lawn.
+
+
 
 
 

@@ -42,33 +42,20 @@ export function NorthZoneBuildings({ onSelect }: NorthZoneBuildingsProps) {
     return geo;
   }, []);
 
-  // Octagonal-ring dormitory geometry (初中部宿舍 · 八角楼)
-  const octGeo = useMemo(() => {
-    const makeOct = (r: number, ccw: boolean) => {
-      const pts: THREE.Vector2[] = [];
-      for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
-        pts.push(new THREE.Vector2(Math.cos(a) * r, Math.sin(a) * r));
-      }
-      if (ccw) pts.reverse();
-      return pts;
-    };
-
-    const shape = new THREE.Shape(makeOct(19, false));
-    const hole = new THREE.Path(makeOct(11, true));
-    shape.holes.push(hole);
-
-    const geo = new THREE.ExtrudeGeometry(shape, {
-      depth: 15,
-      bevelEnabled: false,
+  // 8-wing octagonal ring parameters for 初中部宿舍 · 八角楼
+  const octSides = useMemo(() => {
+    const r = 15.6;
+    return Array.from({ length: 8 }, (_, i) => {
+      const angle = (i / 8) * Math.PI * 2;
+      return {
+        x: Math.sin(angle) * r,
+        z: Math.cos(angle) * r,
+        rotY: angle,
+      };
     });
-    geo.rotateX(-Math.PI / 2);
-    geo.computeVertexNormals();
-    return geo;
   }, []);
 
   const crescentTex = useMemo(() => getFacadeWindowTexture('#e5e7eb', 3, 18, false), []);
-  const octTex = useMemo(() => getFacadeWindowTexture('#e2e8f0', 4, 16, false), []);
   const flagWallTex = useMemo(() => getFlagWallTexture(), []);
 
   return (
@@ -173,7 +160,7 @@ export function NorthZoneBuildings({ onSelect }: NorthZoneBuildingsProps) {
         ))}
       </group>
 
-      {/* ==================== 4. 初中部宿舍 · 八角楼 ==================== */}
+      {/* ==================== 4. 初中部宿舍 · 八角楼 (8-Wing Parametric Octagon) ==================== */}
       <group
         position={dormOct.position}
         rotation={[0, dormOct.rotationY, 0]}
@@ -182,18 +169,27 @@ export function NorthZoneBuildings({ onSelect }: NorthZoneBuildingsProps) {
           onSelect(dormOct);
         }}
       >
-        {/* Inner courtyard lawn */}
-        <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <circleGeometry args={[11.5, 8]} />
+        {/* Inner octagonal courtyard lawn */}
+        <mesh position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <circleGeometry args={[12.5, 8]} />
           <meshStandardMaterial color="#5da346" roughness={0.92} />
         </mesh>
-        <mesh geometry={octGeo} castShadow receiveShadow>
-          <meshStandardMaterial map={octTex} roughness={0.65} metalness={0.08} />
-        </mesh>
-        {/* Octagonal roof rim */}
-        <mesh geometry={octGeo} position={[0, 15.1, 0]} scale={[1.02, 0.1, 1.02]} castShadow>
-          <meshStandardMaterial color="#2d3748" roughness={0.72} />
-        </mesh>
+        {octSides.map((side, i) => (
+          <WingBlock
+            key={i}
+            position={[side.x, 0, side.z]}
+            rotationY={side.rotY}
+            width={14.8}
+            height={15}
+            depth={6.5}
+            stories={4}
+            wallColor="#e5e7eb"
+            roofColor="#2d3748"
+            roofHeight={2.4}
+            windowCols={6}
+            archedTop={true}
+          />
+        ))}
       </group>
 
       {/* ==================== 5. 初中部宿舍 · 北翼楼 (L型临湖宿舍) ==================== */}

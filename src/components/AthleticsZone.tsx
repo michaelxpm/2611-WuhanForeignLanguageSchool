@@ -5,6 +5,7 @@ import {
   getAsphaltTexture,
   getCourtTexture,
   getFootballPitchTexture,
+  getStadiumTrackTexture,
 } from '../materials/proceduralTextures';
 import { WingBlock } from './buildings/ArchitecturalKit';
 
@@ -54,11 +55,12 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
   const smallTrack = getSpec('small-track');
 
   const pitchTex = useMemo(() => getFootballPitchTexture(), []);
+  const trackTex = useMemo(() => getStadiumTrackTexture(), []);
   const redCourtTex = useMemo(() => getCourtTexture('#b94a3e', '#f8fafc'), []);
   const tealCourtTex = useMemo(() => getCourtTexture('#1d6f72', '#f8fafc'), []);
   const asphaltTex = useMemo(() => getAsphaltTexture(6, 4), []);
 
-  // Main 400m track geometry
+  // Main 400m track geometry & true stadium-oval white lane lines
   const mainTrackGeo = useMemo(() => {
     const outer = makeTrackShape(84, 42);
     const inner = makeTrackShape(84, 31);
@@ -66,6 +68,17 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
     const geo = new THREE.ShapeGeometry(outer, 32);
     geo.rotateX(-Math.PI / 2);
     return geo;
+  }, []);
+
+  const mainLaneGeos = useMemo(() => {
+    return [33.2, 36.2, 39.2].map((r) => {
+      const outer = makeTrackShape(84, r + 0.12);
+      const inner = makeTrackShape(84, r - 0.12);
+      outer.holes.push(inner);
+      const geo = new THREE.ShapeGeometry(outer, 32);
+      geo.rotateX(-Math.PI / 2);
+      return geo;
+    });
   }, []);
 
   // Small 200m track geometry
@@ -89,27 +102,26 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
           onSelect(mainStadium);
         }}
       >
-        {/* Red EPDM 400m Track */}
-        <mesh geometry={mainTrackGeo} position={[0, 0.06, 8]} receiveShadow>
-          <meshStandardMaterial color="#b9483b" roughness={0.84} />
+        {/* Red EPDM 400m Track (strictly y = 0.14) */}
+        <mesh geometry={mainTrackGeo} position={[0, 0.14, 8]} receiveShadow>
+          <meshStandardMaterial map={trackTex} color="#b9483b" roughness={0.84} />
         </mesh>
-        {/* Subtle white lane rings */}
-        {[33, 36.5, 40].map((r, i) => (
-          <mesh key={i} position={[0, 0.075, 8]} rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[r - 0.12, r + 0.12, 64]} />
+        {/* True stadium-oval white lane rings (strictly y = 0.16) */}
+        {mainLaneGeos.map((geo, i) => (
+          <mesh key={i} geometry={geo} position={[0, 0.16, 8]}>
             <meshStandardMaterial color="#f8fafc" roughness={0.7} />
           </mesh>
         ))}
 
-        {/* Inner Striped Football Pitch */}
-        <mesh position={[0, 0.05, 8]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[104, 64]} />
+        {/* Inner Striped Football Pitch (strictly y = 0.18) */}
+        <mesh position={[0, 0.18, 8]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[104, 62]} />
           <meshStandardMaterial map={pitchTex} roughness={0.9} />
         </mesh>
 
         {/* Football Goals */}
-        <FootballGoal position={[-50, 0.06, 8]} rotationY={Math.PI / 2} />
-        <FootballGoal position={[50, 0.06, 8]} rotationY={-Math.PI / 2} />
+        <FootballGoal position={[-50, 0.18, 8]} rotationY={Math.PI / 2} />
+        <FootballGoal position={[50, 0.18, 8]} rotationY={-Math.PI / 2} />
 
         {/* North Grandstand / Bleachers + 5-bay Tensile Membrane Canopy */}
         <group position={[0, 0, -48]}>
@@ -191,29 +203,29 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
           onSelect(smallTrack);
         }}
       >
-        {/* 200m Red EPDM Track */}
-        <mesh geometry={smallTrackGeo} position={[0, 0.06, 0]} receiveShadow>
-          <meshStandardMaterial color="#b9483b" roughness={0.84} />
+        {/* 200m Red EPDM Track (strictly y = 0.14) */}
+        <mesh geometry={smallTrackGeo} position={[0, 0.14, 0]} receiveShadow>
+          <meshStandardMaterial map={trackTex} color="#b9483b" roughness={0.84} />
         </mesh>
-        {/* Inner Turf Field */}
-        <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        {/* Inner Turf Field (strictly y = 0.18) */}
+        <mesh position={[0, 0.18, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
           <planeGeometry args={[48, 26]} />
           <meshStandardMaterial map={pitchTex} roughness={0.9} />
         </mesh>
-        {/* 小足球场 (Mini Football Turf at North End) */}
-        <mesh position={[-46, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        {/* 小足球场 (Mini Football Turf at North End, strictly y = 0.16) */}
+        <mesh position={[-46, 0.16, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
           <planeGeometry args={[24, 34]} />
           <meshStandardMaterial map={pitchTex} roughness={0.9} />
         </mesh>
-        {/* Multi-use red/teal courts at South End */}
-        <mesh position={[44, 0.05, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} receiveShadow>
+        {/* Multi-use red/teal courts at South End (strictly y = 0.16) */}
+        <mesh position={[44, 0.16, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} receiveShadow>
           <planeGeometry args={[34, 24]} />
           <meshStandardMaterial map={redCourtTex} roughness={0.82} />
         </mesh>
       </group>
 
-      {/* ==================== 3. SOUTH OUTDOOR COURTS STRIP (6 RED + 2 TEAL) ==================== */}
-      <group position={[-172, 0.05, 118]}>
+      {/* ==================== 3. SOUTH OUTDOOR COURTS STRIP (6 RED + 2 TEAL, strictly y = 0.14) ==================== */}
+      <group position={[-172, 0.14, 122]}>
         {/* West Teal Tennis Court */}
         <mesh position={[-62, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
           <planeGeometry args={[24, 34]} />

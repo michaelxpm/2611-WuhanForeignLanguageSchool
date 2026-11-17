@@ -377,3 +377,25 @@ export function getCourtTexture(surfaceHex = '#b94a3e', lineHex = '#f8fafc'): TH
 
   return finalizeTexture(key, canvas, 1, 1, true);
 }
+
+export function getStadiumTrackTexture(): THREE.CanvasTexture {
+  const key = 'stadium-track';
+  if (textureCache.has(key)) return textureCache.get(key)!;
+
+  const w = 1024;
+  const h = 512;
+  const [canvas, ctx] = makeCanvas(w, h);
+
+  ctx.fillStyle = '#b9483b';
+  ctx.fillRect(0, 0, w, h);
+
+  // Subtle EPDM grain
+  for (let i = 0; i < 4000; i++) {
+    const x = (i * 67) % w;
+    const y = (i * 113) % h;
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)';
+    ctx.fillRect(x, y, 2, 2);
+  }
+
+  return finalizeTexture(key, canvas, 4, 4, true);
+}

@@ -173,6 +173,27 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Click any building and click `环绕此建筑` to orbit around it smoothly.
   - [ ] Inspect the South outdoor courts (tennis nets, fencing, floodlights) and stadium parking lot (parked cars).
 
+---
+
+## Phase 8 — Third-Person Girl Walk, Interactive Edit Mode & 效果图 Visual Upgrade
+- **Status**: Completed
+- **Git Tag**: `phase-8` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-8))
+- **Working Steps**:
+  1. Built `src/components/GirlWalker.tsx`: articulated 3D schoolgirl character in WFLS uniform (white shirt, red scarf, dark pleated skirt, ponytail, swinging walk/run animation) with a side-back third-person camera (`offset = [1.05, 1.85, 3.8]`, `WASD` + `Shift` + mouse drag steering).
+  2. Built `src/data/editableDefaults.ts` and full **Edit Mode (`编辑模式`)** in `App.tsx`, `SceneRoot.tsx`, `CampusGround.tsx`, and `CampusFoliage.tsx` allowing live X/Z/Rotation/Scale editing and click-ground-to-move for every **building**, **road node**, and **tree**, plus **Export JSON** and **Reset**.
+  3. Removed Time-of-Day presets and `<fog>` from `EnvironmentEffects.tsx` for crisp, haze-free daylight clarity.
+  4. Upgraded visual realism toward `效果图`: rebuilt `东侧三角中庭楼` with 3 clean parametric `WingBlock` segments + central atrium drum (eliminating the hollow `ExtrudeGeometry` artifact), upgraded `CampusFoliage.tsx` to 3-lobe organic broadleaf canopies with denser groves, and softened `扇形广场` terracotta & meadow grass tones.
+- **How to Access Phase 8**:
+  - **Live Website**: `https://michaelxpm.github.io/2611-WuhanForeignLanguageSchool/`
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-8`
+  - **Local**: `git checkout phase-8 && npm.cmd install && npm.cmd run dev` (or `git checkout main`)
+- **Highlight**: Side-back schoolgirl campus walk, full live layout editor with JSON export, crisp fog-free daylight, and `效果图`-matched triangular atrium + lush 3-lobe foliage.
+- **Validation Checklist**:
+  - [ ] Click `女生漫步` in the top-right switcher and walk around `中心花坛` and `扇形广场` using `WASD` + `Shift` + mouse drag.
+  - [ ] Click `编辑模式` and click any building, cyan road node, or tree to adjust X/Z/Rotation/Scale or use `点击地面移动`.
+  - [ ] Inspect `东侧三角中庭楼` and the denser multi-lobe campus tree groves.
+
+
 
 
 

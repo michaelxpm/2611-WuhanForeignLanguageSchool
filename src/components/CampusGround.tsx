@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { pxPos, pxToWorld } from '../data/campusLayout';
+import { ROAD_EDGES, RoadNode } from '../data/editableDefaults';
 import {
   getAsphaltTexture,
   getBrickWalkwayTexture,
@@ -10,6 +11,13 @@ import {
   getVerticalPlaqueTexture,
   getWaterNormalTexture,
 } from '../materials/proceduralTextures';
+
+interface CampusGroundProps {
+  roadNodes: RoadNode[];
+  editMode: boolean;
+  selectedRoadNodeId: string | null;
+  onSelectRoadNode: (node: RoadNode) => void;
+}
 
 const LOTUS_CLUSTERS: { px: number; py: number; radius: number }[] = [
   { px: 548, py: 108, radius: 16 },
@@ -44,7 +52,17 @@ function RoadSegment({ from, to, width, y = 0.08, color = '#d6cfc4', map }: Road
   );
 }
 
-export function CampusGround() {
+export function CampusGround({
+  roadNodes,
+  editMode,
+  selectedRoadNodeId,
+  onSelectRoadNode,
+}: CampusGroundProps) {
+  const nodeMap = useMemo(() => {
+    const m = new Map<string, RoadNode>();
+    roadNodes.forEach((n) => m.set(n.id, n));
+    return m;
+  }, [roadNodes]);
   const stoneTex = useMemo(() => getStonePavingTexture(20, 20), []);
   const brickTex = useMemo(() => getBrickWalkwayTexture(14, 4), []);
   const grassTex = useMemo(() => getGrassTexture(36, 36), []);
@@ -98,7 +116,7 @@ export function CampusGround() {
       {/* Base Earth / Campus Lawn (strictly at y = 0.00) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-90, 0.0, -45]} receiveShadow>
         <planeGeometry args={[980, 780]} />
-        <meshStandardMaterial map={grassTex} color="#7ab55c" roughness={0.94} />
+        <meshStandardMaterial map={grassTex} color="#6ca04c" roughness={0.94} />
       </mesh>
 
       {/* ==================== 北太子湖 (North Taizihu Lake, px=500..668, py=0..305) ==================== */}
@@ -203,7 +221,7 @@ export function CampusGround() {
             receiveShadow
           >
             <ringGeometry args={[r - 1.1, r + 1.1, 48, 1, thetaStart, thetaLength]} />
-            <meshStandardMaterial map={brickTex} color="#b5674c" roughness={0.85} />
+            <meshStandardMaterial map={brickTex} color="#b8745c" roughness={0.85} />
           </mesh>
         ))}
 
@@ -217,7 +235,7 @@ export function CampusGround() {
               to={endPt}
               width={2.6}
               y={0.12}
-              color="#b5674c"
+              color="#b8745c"
               map={brickTex}
             />
           );
@@ -276,42 +294,47 @@ export function CampusGround() {
       {/* Southern vertical path in 寻真园 */}
       <RoadSegment from={pxToWorld(602, 495)} to={pxToWorld(602, 544)} width={3.0} y={0.08} color="#e2ddd5" map={stoneTex} />
 
-      {/* ==================== SATELLITE-CALIBRATED CAMPUS ROAD NETWORK ==================== */}
+      {/* ==================== DYNAMIC EDITABLE ROAD NETWORK ==================== */}
       <group>
-        {/* 1. RED LINE: Main Entrance Pedestrian Avenue (py=544, cleanly between Stadium py<=515 and Courts py>=555) */}
-        <RoadSegment from={pxToWorld(195, 544)} to={pxToWorld(610, 544)} width={7.5} y={0.08} color="#ded8ce" map={stoneTex} />
+        {ROAD_EDGES.map((edge, i) => {
+          const a = nodeMap.get(edge.from);
+          const b = nodeMap.get(edge.to);
+          if (!a || !b) return null;
+          return (
+            <RoadSegment
+              key={`edge-${i}`}
+              from={[a.x, a.z]}
+              to={[b.x, b.z]}
+              width={edge.width}
+              y={edge.y ?? 0.08}
+              color={edge.color ?? '#d6cfc4'}
+              map={stoneTex}
+            />
+          );
+        })}
 
-        {/* 2. BLUE LINE: Vehicle Loop around Stadium (West curve -> North of Grandstand py=345 -> N-S avenue px=482) */}
-        <RoadSegment from={pxToWorld(195, 544)} to={pxToWorld(166, 488)} width={6.0} y={0.07} color="#cfd6df" map={stoneTex} />
-        <RoadSegment from={pxToWorld(166, 488)} to={pxToWorld(166, 396)} width={6.0} y={0.07} color="#cfd6df" map={stoneTex} />
-        <RoadSegment from={pxToWorld(166, 396)} to={pxToWorld(215, 345)} width={6.0} y={0.07} color="#cfd6df" map={stoneTex} />
-        <RoadSegment from={pxToWorld(215, 345)} to={pxToWorld(482, 345)} width={7.0} y={0.07} color="#cfd6df" map={stoneTex} />
-        <RoadSegment from={pxToWorld(482, 345)} to={pxToWorld(482, 544)} width={9.0} y={0.07} color="#cfd6df" map={stoneTex} />
-
-        {/* 3. TRANSITION ZONE & BLACK LINES around 中心花坛 */}
-        {/* N-S Avenue at px=632 (east of 寻真园, leading into Main Entrance Stone Plaza) */}
-        <RoadSegment from={pxToWorld(632, 395)} to={pxToWorld(632, 520)} width={8.0} y={0.08} color="#d6cfc4" map={stoneTex} />
-        {/* E-W Avenue from px=632 to 中心花坛 */}
-        <RoadSegment from={pxToWorld(632, 442)} to={pxToWorld(736, 442)} width={8.0} y={0.09} color="#d6cfc4" map={stoneTex} />
-        {/* Diagonal Avenue (hypotenuse of Triangular Lawn) from 中心花坛 SW to Main Plaza */}
-        <RoadSegment from={pxToWorld(738, 446)} to={pxToWorld(668, 512)} width={8.0} y={0.09} color="#d6cfc4" map={stoneTex} />
-
-        {/* NW Walkway from 中心花坛 between 小学部教学楼 and 报告厅 */}
-        <RoadSegment from={pxToWorld(745, 412)} to={pxToWorld(708, 355)} width={6.5} y={0.08} color="#d6cfc4" map={stoneTex} />
-
-        {/* NNE Avenue from 中心花坛 between 小学部教学楼 and 东侧三角中庭楼 */}
-        <RoadSegment from={pxToWorld(788, 400)} to={pxToWorld(822, 355)} width={7.5} y={0.08} color="#d6cfc4" map={stoneTex} />
-        <RoadSegment from={pxToWorld(822, 355)} to={pxToWorld(852, 290)} width={7.5} y={0.08} color="#d6cfc4" map={stoneTex} />
-
-        {/* North Zone Roads (between 梅苑/竹苑 px=790 and 小学部食堂/北翼楼 px=876) */}
-        <RoadSegment from={pxToWorld(832, 270)} to={pxToWorld(832, 75)} width={6.5} y={0.08} color="#d6cfc4" map={stoneTex} />
-        <RoadSegment from={pxToWorld(852, 290)} to={pxToWorld(832, 270)} width={6.5} y={0.08} color="#d6cfc4" map={stoneTex} />
-        <RoadSegment from={pxToWorld(832, 265)} to={pxToWorld(758, 265)} width={6.0} y={0.08} color="#d6cfc4" map={stoneTex} />
-        <RoadSegment from={pxToWorld(758, 265)} to={pxToWorld(758, 120)} width={5.5} y={0.08} color="#d6cfc4" map={stoneTex} />
-
-        {/* 4. YELLOW LINES: East Perimeter Road (cleanly at px=888 between 扇形广场/附楼 and 桂苑/松苑) */}
-        <RoadSegment from={pxToWorld(822, 355)} to={pxToWorld(888, 415)} width={7.0} y={0.07} color="#d6cfc4" map={stoneTex} />
-        <RoadSegment from={pxToWorld(888, 415)} to={pxToWorld(888, 605)} width={7.0} y={0.07} color="#d6cfc4" map={stoneTex} />
+        {/* Editable Road Node Handles (visible in Edit Mode) */}
+        {editMode &&
+          roadNodes.map((node) => {
+            const isSel = node.id === selectedRoadNodeId;
+            return (
+              <mesh
+                key={node.id}
+                position={[node.x, 1.2, node.z]}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectRoadNode(node);
+                }}
+              >
+                <sphereGeometry args={[isSel ? 2.2 : 1.5, 16, 16]} />
+                <meshStandardMaterial
+                  color={isSel ? '#f59e0b' : '#06b6d4'}
+                  emissive={isSel ? '#d97706' : '#0891b2'}
+                  emissiveIntensity={0.6}
+                />
+              </mesh>
+            );
+          })}
 
         {/* 太子湖北路 (Taizihu N Rd - South Boundary, py=625) */}
         <mesh position={pxPos(550, 628, 0.04)} receiveShadow>

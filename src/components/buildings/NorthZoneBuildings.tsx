@@ -1,24 +1,25 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { BUILDINGS, BuildingSpec, pxPos } from '../../data/campusLayout';
+import { BuildingSpec, pxPos } from '../../data/campusLayout';
 import { getFacadeWindowTexture, getFlagWallTexture } from '../../materials/proceduralTextures';
 import { CourtyardRing, WingBlock } from './ArchitecturalKit';
 
 interface NorthZoneBuildingsProps {
+  buildings: BuildingSpec[];
   onSelect: (spec: BuildingSpec) => void;
 }
 
-function getSpec(id: string): BuildingSpec {
-  return BUILDINGS.find((b) => b.id === id)!;
+function findSpec(buildings: BuildingSpec[], id: string): BuildingSpec {
+  return buildings.find((b) => b.id === id)!;
 }
 
-export function NorthZoneBuildings({ onSelect }: NorthZoneBuildingsProps) {
-  const middleCanteen = getSpec('middle-canteen');
-  const zhuyuan = getSpec('zhuyuan');
-  const meiyuan = getSpec('meiyuan');
-  const elemCanteen = getSpec('elementary-canteen');
-  const dormOct = getSpec('dorm-octagonal');
-  const dormNorth = getSpec('dorm-north-wing');
+export function NorthZoneBuildings({ buildings, onSelect }: NorthZoneBuildingsProps) {
+  const middleCanteen = findSpec(buildings, 'middle-canteen');
+  const zhuyuan = findSpec(buildings, 'zhuyuan');
+  const meiyuan = findSpec(buildings, 'meiyuan');
+  const elemCanteen = findSpec(buildings, 'elementary-canteen');
+  const dormOct = findSpec(buildings, 'dorm-octagonal');
+  const dormNorth = findSpec(buildings, 'dorm-north-wing');
 
   // Crescent / Arc-shaped 初中部食堂 geometry (oriented along N-S on west side, annex on east)
   const crescentGeo = useMemo(() => {

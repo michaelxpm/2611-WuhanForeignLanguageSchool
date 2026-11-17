@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { BUILDINGS, BuildingSpec, pxPos } from '../data/campusLayout';
+import { BuildingSpec, pxPos } from '../data/campusLayout';
 import {
   getAsphaltTexture,
   getCourtTexture,
@@ -10,11 +10,12 @@ import {
 import { WingBlock } from './buildings/ArchitecturalKit';
 
 interface AthleticsZoneProps {
+  buildings: BuildingSpec[];
   onSelect: (spec: BuildingSpec) => void;
 }
 
-function getSpec(id: string): BuildingSpec {
-  return BUILDINGS.find((b) => b.id === id)!;
+function findSpec(buildings: BuildingSpec[], id: string): BuildingSpec {
+  return buildings.find((b) => b.id === id)!;
 }
 
 /** Creates a stadium-oval (rounded rectangle) flat shape */
@@ -50,9 +51,9 @@ function FootballGoal({ position, rotationY = 0 }: { position: [number, number, 
   );
 }
 
-export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
-  const mainStadium = getSpec('main-stadium');
-  const smallTrack = getSpec('small-track');
+export function AthleticsZone({ buildings, onSelect }: AthleticsZoneProps) {
+  const mainStadium = findSpec(buildings, 'main-stadium');
+  const smallTrack = findSpec(buildings, 'small-track');
 
   const pitchTex = useMemo(() => getFootballPitchTexture(), []);
   const trackTex = useMemo(() => getStadiumTrackTexture(), []);

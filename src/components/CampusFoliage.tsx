@@ -1,151 +1,111 @@
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { pxToWorld } from '../data/campusLayout';
+import { TreeItem } from '../data/editableDefaults';
 
-interface TreePlacement {
-  x: number;
-  z: number;
-  scale: number;
-  shade: number;
+interface CampusFoliageProps {
+  trees: TreeItem[];
+  editMode: boolean;
+  selectedTreeId: string | null;
+  onSelectTree: (tree: TreeItem) => void;
 }
 
-function generateTreePlacements(): TreePlacement[] {
-  const trees: TreePlacement[] = [];
-  const addPx = (px: number, py: number, scale = 1, seed = 0) => {
-    const [x, z] = pxToWorld(px, py);
-    const jitterX = Math.sin(seed * 12.9898) * 0.7;
-    const jitterZ = Math.cos(seed * 78.233) * 0.7;
-    trees.push({
-      x: x + jitterX,
-      z: z + jitterZ,
-      scale: scale * (0.85 + ((seed * 37) % 10) * 0.03),
-      shade: ((seed * 19) % 10) / 10,
-    });
-  };
-
-  let idx = 1;
-
-  // 1. 中心花坛 ring trees (16 trees around r=16.5m)
-  for (let i = 0; i < 16; i++) {
-    const a = (i / 16) * Math.PI * 2;
-    trees.push({
-      x: Math.cos(a) * 16.5,
-      z: Math.sin(a) * 16.5,
-      scale: 0.9,
-      shade: (i % 5) * 0.2,
-    });
-  }
-
-  // 2. 北太子湖 & 小操场 shoreline grove (px=660..700, py=90..300 and north shore py=25..42)
-  for (let py = 95; py <= 295; py += 16) {
-    const px = 668 + ((295 - py) / 200) * 28;
-    addPx(px - 6, py, 1.05, idx++);
-  }
-  for (let px = 755; px <= 920; px += 18) {
-    addPx(px, 28, 1.05, idx++);
-  }
-
-  // 3. 太子湖北路 (South avenue boulevard, py=612 & py=642)
-  for (let px = 190; px <= 940; px += 22) {
-    addPx(px, 612, 1.05, idx++);
-    addPx(px + 8, 642, 1.1, idx++);
-  }
-
-  // 4. Red Main Pedestrian Avenue (py=534 & py=552, cleanly between Stadium py<=515 and Courts py>=556)
-  for (let px = 215; px <= 595; px += 20) {
-    addPx(px, 533, 0.95, idx++);
-    addPx(px, 553, 0.95, idx++);
-  }
-
-  // 5. N-S Avenue between Stadium and 寻真园 (px=470 & px=495, py=355..525)
-  for (let py = 355; py <= 525; py += 20) {
-    addPx(468, py, 1.0, idx++);
-    addPx(496, py, 1.0, idx++);
-  }
-
-  // 6. 寻真园 East border & Triangular Lawn border (px=622 & px=644, py=350..520)
-  for (let py = 355; py <= 515; py += 20) {
-    addPx(620, py, 1.0, idx++);
-  }
-  // Diagonal avenue trees along Triangular Lawn (px=730..674, py=452..508)
-  for (let t = 0; t < 5; t++) {
-    addPx(730 - t * 13, 452 + t * 13, 0.9, idx++);
-  }
-
-  // 7. North of 寻真园 / South shore of 北太子湖 (px=495..645, py=325)
-  for (let px = 495; px <= 640; px += 20) {
-    addPx(px, 326, 1.05, idx++);
-  }
-
-  // 8. West of Stadium (px=152, py=355..530)
-  for (let py = 355; py <= 530; py += 22) {
-    addPx(152, py, 1.05, idx++);
-  }
-
-  // 9. East Perimeter Road (px=900, py=415..590)
-  for (let py = 415; py <= 590; py += 22) {
-    addPx(900, py, 0.95, idx++);
-  }
-
-  return trees;
-}
-
-export function CampusFoliage() {
-  const trees = useMemo(() => generateTreePlacements(), []);
+export function CampusFoliage({
+  trees,
+  editMode,
+  selectedTreeId,
+  onSelectTree,
+}: CampusFoliageProps) {
   const trunkRef = useRef<THREE.InstancedMesh>(null);
-  const canopyRef = useRef<THREE.InstancedMesh>(null);
-  const topCanopyRef = useRef<THREE.InstancedMesh>(null);
+  const canopy1Ref = useRef<THREE.InstancedMesh>(null);
+  const canopy2Ref = useRef<THREE.InstancedMesh>(null);
+  const canopy3Ref = useRef<THREE.InstancedMesh>(null);
 
   useLayoutEffect(() => {
     const dummy = new THREE.Object3D();
     const color = new THREE.Color();
 
     trees.forEach((t, i) => {
-      dummy.position.set(t.x, 1.9 * t.scale, t.z);
+      // Trunk
+      dummy.position.set(t.x, 1.8 * t.scale, t.z);
       dummy.scale.set(t.scale, t.scale, t.scale);
       dummy.updateMatrix();
       trunkRef.current?.setMatrixAt(i, dummy.matrix);
 
-      dummy.position.set(t.x, 4.4 * t.scale, t.z);
-      dummy.scale.set(t.scale * 1.1, t.scale * 0.9, t.scale * 1.1);
+      // Main broadleaf crown
+      dummy.position.set(t.x, 4.3 * t.scale, t.z);
+      dummy.scale.set(t.scale * 1.15, t.scale * 0.85, t.scale * 1.15);
       dummy.updateMatrix();
-      canopyRef.current?.setMatrixAt(i, dummy.matrix);
-      color.setHSL(0.28 + t.shade * 0.04, 0.48, 0.3 + t.shade * 0.1);
-      canopyRef.current?.setColorAt(i, color);
+      canopy1Ref.current?.setMatrixAt(i, dummy.matrix);
+      color.setHSL(0.25 + t.shade * 0.05, 0.45, 0.28 + t.shade * 0.1);
+      canopy1Ref.current?.setColorAt(i, color);
 
-      dummy.position.set(t.x + 0.4 * t.scale, 5.7 * t.scale, t.z - 0.3 * t.scale);
-      dummy.scale.set(t.scale * 0.8, t.scale * 0.78, t.scale * 0.8);
+      // Side-top lobe
+      dummy.position.set(t.x + 0.9 * t.scale, 5.1 * t.scale, t.z - 0.5 * t.scale);
+      dummy.scale.set(t.scale * 0.85, t.scale * 0.75, t.scale * 0.85);
       dummy.updateMatrix();
-      topCanopyRef.current?.setMatrixAt(i, dummy.matrix);
-      color.setHSL(0.27 + t.shade * 0.04, 0.52, 0.36 + t.shade * 0.1);
-      topCanopyRef.current?.setColorAt(i, color);
+      canopy2Ref.current?.setMatrixAt(i, dummy.matrix);
+      color.setHSL(0.24 + t.shade * 0.05, 0.48, 0.34 + t.shade * 0.1);
+      canopy2Ref.current?.setColorAt(i, color);
+
+      // Opposite-lower lobe
+      dummy.position.set(t.x - 0.85 * t.scale, 4.6 * t.scale, t.z + 0.65 * t.scale);
+      dummy.scale.set(t.scale * 0.82, t.scale * 0.72, t.scale * 0.82);
+      dummy.updateMatrix();
+      canopy3Ref.current?.setMatrixAt(i, dummy.matrix);
+      color.setHSL(0.26 + t.shade * 0.04, 0.44, 0.31 + t.shade * 0.1);
+      canopy3Ref.current?.setColorAt(i, color);
     });
 
-    if (trunkRef.current) trunkRef.current.instanceMatrix.needsUpdate = true;
-    if (canopyRef.current) {
-      canopyRef.current.instanceMatrix.needsUpdate = true;
-      if (canopyRef.current.instanceColor) canopyRef.current.instanceColor.needsUpdate = true;
-    }
-    if (topCanopyRef.current) {
-      topCanopyRef.current.instanceMatrix.needsUpdate = true;
-      if (topCanopyRef.current.instanceColor) topCanopyRef.current.instanceColor.needsUpdate = true;
-    }
+    [trunkRef, canopy1Ref, canopy2Ref, canopy3Ref].forEach((ref) => {
+      if (ref.current) {
+        ref.current.instanceMatrix.needsUpdate = true;
+        if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
+      }
+    });
   }, [trees]);
+
+  const selectedTree = editMode ? trees.find((t) => t.id === selectedTreeId) : null;
 
   return (
     <group>
       <instancedMesh ref={trunkRef} args={[undefined, undefined, trees.length]} castShadow>
-        <cylinderGeometry args={[0.24, 0.36, 3.8, 7]} />
+        <cylinderGeometry args={[0.22, 0.34, 3.6, 7]} />
         <meshStandardMaterial color="#5c4033" roughness={0.95} />
       </instancedMesh>
-      <instancedMesh ref={canopyRef} args={[undefined, undefined, trees.length]} castShadow receiveShadow>
-        <dodecahedronGeometry args={[2.5, 1]} />
+      <instancedMesh
+        ref={canopy1Ref}
+        args={[undefined, undefined, trees.length]}
+        castShadow
+        receiveShadow
+        onClick={(e) => {
+          if (!editMode || e.instanceId === undefined) return;
+          e.stopPropagation();
+          const t = trees[e.instanceId];
+          if (t) onSelectTree(t);
+        }}
+      >
+        <icosahedronGeometry args={[2.35, 1]} />
         <meshStandardMaterial roughness={0.86} />
       </instancedMesh>
-      <instancedMesh ref={topCanopyRef} args={[undefined, undefined, trees.length]} castShadow receiveShadow>
-        <dodecahedronGeometry args={[2.1, 1]} />
-        <meshStandardMaterial roughness={0.84} />
+      <instancedMesh ref={canopy2Ref} args={[undefined, undefined, trees.length]} castShadow receiveShadow>
+        <icosahedronGeometry args={[2.0, 1]} />
+        <meshStandardMaterial roughness={0.85} />
       </instancedMesh>
+      <instancedMesh ref={canopy3Ref} args={[undefined, undefined, trees.length]} castShadow receiveShadow>
+        <icosahedronGeometry args={[1.95, 1]} />
+        <meshStandardMaterial roughness={0.85} />
+      </instancedMesh>
+
+      {/* Selection ring in Edit Mode */}
+      {selectedTree && (
+        <mesh
+          position={[selectedTree.x, 0.25, selectedTree.z]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <ringGeometry args={[2.8, 3.6, 28]} />
+          <meshBasicMaterial color="#10b981" />
+        </mesh>
+      )}
     </group>
   );
 }

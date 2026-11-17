@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { BUILDINGS, BuildingSpec } from '../data/campusLayout';
+import { BUILDINGS, BuildingSpec, pxPos } from '../data/campusLayout';
 import {
   getAsphaltTexture,
   getCourtTexture,
@@ -102,29 +102,29 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
           onSelect(mainStadium);
         }}
       >
-        {/* Red EPDM 400m Track (strictly y = 0.14) */}
-        <mesh geometry={mainTrackGeo} position={[0, 0.14, 8]} receiveShadow>
+        {/* Red EPDM 400m Track (strictly y = 0.14, centered at [0, 0]) */}
+        <mesh geometry={mainTrackGeo} position={[0, 0.14, 0]} receiveShadow>
           <meshStandardMaterial map={trackTex} color="#b9483b" roughness={0.84} />
         </mesh>
         {/* True stadium-oval white lane rings (strictly y = 0.16) */}
         {mainLaneGeos.map((geo, i) => (
-          <mesh key={i} geometry={geo} position={[0, 0.16, 8]}>
+          <mesh key={i} geometry={geo} position={[0, 0.16, 0]}>
             <meshStandardMaterial color="#f8fafc" roughness={0.7} />
           </mesh>
         ))}
 
         {/* Inner Striped Football Pitch (strictly y = 0.18) */}
-        <mesh position={[0, 0.18, 8]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <mesh position={[0, 0.18, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
           <planeGeometry args={[104, 62]} />
           <meshStandardMaterial map={pitchTex} roughness={0.9} />
         </mesh>
 
         {/* Football Goals */}
-        <FootballGoal position={[-50, 0.18, 8]} rotationY={Math.PI / 2} />
-        <FootballGoal position={[50, 0.18, 8]} rotationY={-Math.PI / 2} />
+        <FootballGoal position={[-50, 0.18, 0]} rotationY={Math.PI / 2} />
+        <FootballGoal position={[50, 0.18, 0]} rotationY={-Math.PI / 2} />
 
         {/* North Grandstand / Bleachers + 5-bay Tensile Membrane Canopy */}
-        <group position={[0, 0, -48]}>
+        <group position={[0, 0, -54]}>
           {/* Stepped concrete seating tiers */}
           {[0, 1, 2, 3, 4].map((tier) => (
             <mesh key={tier} position={[0, 0.4 + tier * 0.75, -tier * 1.4]} castShadow receiveShadow>
@@ -179,7 +179,7 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
         </group>
 
         {/* Paved Parking Lot East of Grandstand */}
-        <group position={[78, 0.04, -52]}>
+        <group position={[84, 0.05, -56]}>
           <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
             <planeGeometry args={[46, 26]} />
             <meshStandardMaterial map={asphaltTex} color="#474d57" roughness={0.88} />
@@ -194,10 +194,10 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
         </group>
       </group>
 
-      {/* ==================== 2. 小操场 & 小足球场 (SMALL TRACK, NW) ==================== */}
+      {/* ==================== 2. 小操场 & 小足球场 (SMALL TRACK, px=722, py=180) ==================== */}
       <group
         position={smallTrack.position}
-        rotation={[0, smallTrack.rotationY + Math.PI / 2, 0]}
+        rotation={[0, Math.PI / 2 - 0.23, 0]}
         onClick={(e) => {
           e.stopPropagation();
           onSelect(smallTrack);
@@ -224,23 +224,22 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
         </mesh>
       </group>
 
-      {/* ==================== 3. SOUTH OUTDOOR COURTS STRIP (6 RED + 2 TEAL, strictly y = 0.14) ==================== */}
-      <group position={[-172, 0.14, 122]}>
-        {/* West Teal Tennis Court */}
-        <mesh position={[-62, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[24, 34]} />
+      {/* ==================== 3. SOUTH OUTDOOR COURTS STRIP (px=235..485, py=580 -> Z=97.5) ==================== */}
+      <group position={pxPos(360, 580, 0.14)}>
+        {/* West Teal Tennis Court (px=238 -> dx=-79) */}
+        <mesh position={[-79, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[28, 30]} />
           <meshStandardMaterial map={tealCourtTex} roughness={0.82} />
         </mesh>
-        {/* 6 Red/Teal Basketball Courts */}
+        {/* 6 Red/Teal Basketball Courts (px=278..438 -> dx=-52..+48) */}
         {Array.from({ length: 6 }, (_, i) => {
-          const cx = -36 + i * 16;
+          const cx = -50 + i * 19.5;
           return (
             <group key={i} position={[cx, 0, 0]}>
               <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-                <planeGeometry args={[14.5, 28]} />
+                <planeGeometry args={[16, 28]} />
                 <meshStandardMaterial map={redCourtTex} roughness={0.82} />
               </mesh>
-              {/* Basketball Hoops at both ends */}
               {[-13.5, 13.5].map((hz, hi) => (
                 <group key={hi} position={[0, 0, hz]}>
                   <mesh position={[0, 1.5, 0]} castShadow>
@@ -256,9 +255,9 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
             </group>
           );
         })}
-        {/* East Teal Tennis Court */}
-        <mesh position={[60, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[24, 34]} />
+        {/* East Teal Tennis Court (px=482 -> dx=+79) */}
+        <mesh position={[79, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[28, 30]} />
           <meshStandardMaterial map={tealCourtTex} roughness={0.82} />
         </mesh>
       </group>

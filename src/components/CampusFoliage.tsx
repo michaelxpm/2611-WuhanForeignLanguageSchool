@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { pxToWorld } from '../data/campusLayout';
 
 interface TreePlacement {
   x: number;
@@ -10,85 +11,80 @@ interface TreePlacement {
 
 function generateTreePlacements(): TreePlacement[] {
   const trees: TreePlacement[] = [];
-  const add = (x: number, z: number, scale = 1, seed = 0) => {
-    const jitterX = Math.sin(seed * 12.9898) * 1.1;
-    const jitterZ = Math.cos(seed * 78.233) * 1.1;
+  const addPx = (px: number, py: number, scale = 1, seed = 0) => {
+    const [x, z] = pxToWorld(px, py);
+    const jitterX = Math.sin(seed * 12.9898) * 0.7;
+    const jitterZ = Math.cos(seed * 78.233) * 0.7;
     trees.push({
       x: x + jitterX,
       z: z + jitterZ,
-      scale: scale * (0.82 + ((seed * 37) % 10) * 0.035),
+      scale: scale * (0.85 + ((seed * 37) % 10) * 0.03),
       shade: ((seed * 19) % 10) / 10,
     });
   };
 
   let idx = 1;
 
-  // 1. 中心花坛 ring trees (16 trees)
+  // 1. 中心花坛 ring trees (16 trees around r=16.5m)
   for (let i = 0; i < 16; i++) {
     const a = (i / 16) * Math.PI * 2;
-    add(Math.cos(a) * 17.5, Math.sin(a) * 17.5, 0.9, idx++);
+    trees.push({
+      x: Math.cos(a) * 16.5,
+      z: Math.sin(a) * 16.5,
+      scale: 0.9,
+      shade: (i % 5) * 0.2,
+    });
   }
 
-  // 2. 北太子湖 shoreline avenue trees
-  for (let z = -280; z <= -70; z += 11) {
-    add(-144 + Math.sin(z * 0.03) * 4, z, 1.15, idx++);
-    add(-154 + Math.sin(z * 0.03) * 4, z + 5, 1.0, idx++);
+  // 2. 北太子湖 & 小操场 shoreline grove (px=660..700, py=90..300 and north shore py=25..42)
+  for (let py = 95; py <= 295; py += 16) {
+    const px = 668 + ((295 - py) / 200) * 28;
+    addPx(px - 6, py, 1.05, idx++);
   }
-  for (let x = -140; x <= 30; x += 12) {
-    add(x, -286, 1.15, idx++);
-  }
-
-  // 3. 太子湖北路 (South avenue boulevard)
-  for (let x = -320; x <= 145; x += 13) {
-    add(x, 141, 1.1, idx++);
-    add(x + 4, 167, 1.15, idx++);
+  for (let px = 755; px <= 920; px += 18) {
+    addPx(px, 28, 1.05, idx++);
   }
 
-  // 4. 东风大道 (West perimeter)
-  for (let z = -200; z <= 135; z += 14) {
-    add(-332, z, 1.15, idx++);
+  // 3. 太子湖北路 (South avenue boulevard, py=612 & py=642)
+  for (let px = 190; px <= 940; px += 22) {
+    addPx(px, 612, 1.05, idx++);
+    addPx(px + 8, 642, 1.1, idx++);
   }
 
-  // 5. Main Entrance Pedestrian Avenue (between Stadium & Courts) + Blue Vehicle Road
-  for (let x = -305; x <= -100; x += 15) {
-    add(x, 106, 0.95, idx++);
-    add(x, 91, 0.95, idx++);
-  }
-  for (let x = -280; x <= -100; x += 16) {
-    add(x, -15, 1.0, idx++);
+  // 4. Red Main Pedestrian Avenue (py=534 & py=552, cleanly between Stadium py<=515 and Courts py>=556)
+  for (let px = 215; px <= 595; px += 20) {
+    addPx(px, 533, 0.95, idx++);
+    addPx(px, 553, 0.95, idx++);
   }
 
-  // 5b. North avenue from Roundabout toward 小学部 & 梅苑/竹苑
-  for (let t = 0; t < 11; t++) {
-    const z = -26 - t * 15;
-    const x = 4 + t * 1.8;
-    add(x - 7, z, 0.95, idx++);
-    add(x + 7, z, 0.95, idx++);
+  // 5. N-S Avenue between Stadium and 寻真园 (px=470 & px=495, py=355..525)
+  for (let py = 355; py <= 525; py += 20) {
+    addPx(468, py, 1.0, idx++);
+    addPx(496, py, 1.0, idx++);
   }
 
-  // 6. 寻真园 & 种植区 perimeter grove
-  for (let x = -180; x <= -95; x += 14) {
-    add(x, -16, 1.1, idx++);
-    add(x, 86, 1.1, idx++);
+  // 6. 寻真园 East border & Triangular Lawn border (px=622 & px=644, py=350..520)
+  for (let py = 355; py <= 515; py += 20) {
+    addPx(620, py, 1.0, idx++);
   }
-  for (let z = -10; z <= 80; z += 15) {
-    add(-182, z, 1.05, idx++);
-    add(-94, z, 1.05, idx++);
-  }
-
-  // 7. 扇形广场 outer rim & East road
-  for (let i = 0; i < 14; i++) {
-    const a = -0.38 + (i / 13) * 1.56;
-    add(Math.cos(a) * 112, Math.sin(a) * 112, 1.05, idx++);
+  // Diagonal avenue trees along Triangular Lawn (px=730..674, py=452..508)
+  for (let t = 0; t < 5; t++) {
+    addPx(730 - t * 13, 452 + t * 13, 0.9, idx++);
   }
 
-  // 8. Stadium perimeter trees
-  for (let x = -315; x <= -155; x += 15) {
-    add(x, 104, 1.1, idx++);
+  // 7. North of 寻真园 / South shore of 北太子湖 (px=495..645, py=325)
+  for (let px = 495; px <= 640; px += 20) {
+    addPx(px, 326, 1.05, idx++);
   }
-  for (let z = -20; z <= 95; z += 16) {
-    add(-320, z, 1.1, idx++);
-    add(-150, z, 1.05, idx++);
+
+  // 8. West of Stadium (px=152, py=355..530)
+  for (let py = 355; py <= 530; py += 22) {
+    addPx(152, py, 1.05, idx++);
+  }
+
+  // 9. East Perimeter Road (px=900, py=415..590)
+  for (let py = 415; py <= 590; py += 22) {
+    addPx(900, py, 0.95, idx++);
   }
 
   return trees;
@@ -105,13 +101,11 @@ export function CampusFoliage() {
     const color = new THREE.Color();
 
     trees.forEach((t, i) => {
-      // Trunk
       dummy.position.set(t.x, 1.9 * t.scale, t.z);
       dummy.scale.set(t.scale, t.scale, t.scale);
       dummy.updateMatrix();
       trunkRef.current?.setMatrixAt(i, dummy.matrix);
 
-      // Lower lush canopy
       dummy.position.set(t.x, 4.4 * t.scale, t.z);
       dummy.scale.set(t.scale * 1.1, t.scale * 0.9, t.scale * 1.1);
       dummy.updateMatrix();
@@ -119,7 +113,6 @@ export function CampusFoliage() {
       color.setHSL(0.28 + t.shade * 0.04, 0.48, 0.3 + t.shade * 0.1);
       canopyRef.current?.setColorAt(i, color);
 
-      // Upper offset canopy crown
       dummy.position.set(t.x + 0.4 * t.scale, 5.7 * t.scale, t.z - 0.3 * t.scale);
       dummy.scale.set(t.scale * 0.8, t.scale * 0.78, t.scale * 0.8);
       dummy.updateMatrix();

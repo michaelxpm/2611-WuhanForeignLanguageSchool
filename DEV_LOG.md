@@ -124,7 +124,8 @@ This log tracks every development phase. Each completed phase is committed to `m
 - **Working Steps**:
   1. Rebuilt `初中部宿舍 · 八角楼` in `NorthZoneBuildings.tsx` using 8 parametric `WingBlock` segments arranged in an octagon (proper window bays, concrete floor-slab ledges, overhanging pitched slate roofs, ridge caps, and inner octagonal courtyard lawn).
   2. Eliminated all Z-fighting/flickering on `小操场`, `小足球场`, white roads behind `梅苑`/`竹苑`, and `主体育场` by flattening the peninsula turf to `y = 0.01`, enforcing a strict non-overlapping elevation hierarchy (`roads y=0.07..0.09`, `tracks y=0.14`, `pitches y=0.18`), and replacing circular `ringGeometry` lane lines with true stadium-oval lane geometry.
-  3. Remapped `西北门 · 校园主入口` to the SW corner (`[-318, 0, 112]`) and rebuilt the exact road network from your annotated satellite/cutout maps: the red main pedestrian avenue between `主体育场` and the 8 courts, the blue vehicle road behind the grandstand & `寻真园`, the triangular lawn (`三角绿地`) & asymmetric avenues around `中心花坛`, the NW fork behind `小学部教学楼`/`梅苑`/`竹苑`, the East perimeter road, and the zig-zag garden path in `寻真园`.
+  3. Remapped `西北门 · 校园主入口` and all 17 buildings, courts, tracks, plazas, and road segments using a direct mathematical pixel-to-meter projection (`pxToWorld(px, py)` in `campusLayout.ts`, `1 px = 0.65 m` calibrated to the 999×673 Google Maps ortho satellite reference) and verified every footprint and road vector via an automated overlay on the satellite map.
+  4. Added the `卫星平面视角` (Top-Down Plan View) camera preset for one-click orthographic alignment inspection.
 - **How to Access Phase 5 Fix**:
   - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-5-fix`
   - **Local**: `git checkout phase-5-fix && npm.cmd install && npm.cmd run dev` (or `git checkout main`)

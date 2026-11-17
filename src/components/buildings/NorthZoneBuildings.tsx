@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { BUILDINGS, BuildingSpec } from '../../data/campusLayout';
+import { BUILDINGS, BuildingSpec, pxPos } from '../../data/campusLayout';
 import { getFacadeWindowTexture, getFlagWallTexture } from '../../materials/proceduralTextures';
 import { CourtyardRing, WingBlock } from './ArchitecturalKit';
 
@@ -20,12 +20,12 @@ export function NorthZoneBuildings({ onSelect }: NorthZoneBuildingsProps) {
   const dormOct = getSpec('dorm-octagonal');
   const dormNorth = getSpec('dorm-north-wing');
 
-  // Crescent / Arc-shaped 初中部食堂 geometry
+  // Crescent / Arc-shaped 初中部食堂 geometry (oriented along N-S on west side, annex on east)
   const crescentGeo = useMemo(() => {
-    const outerR = 46;
-    const innerR = 34;
-    const startA = -0.62;
-    const endA = 0.62;
+    const outerR = 34;
+    const innerR = 23;
+    const startA = 1.95;
+    const endA = 4.35;
     const shape = new THREE.Shape();
     shape.absarc(0, 0, outerR, startA, endA, false);
     shape.absarc(0, 0, innerR, endA, startA, true);
@@ -37,7 +37,7 @@ export function NorthZoneBuildings({ onSelect }: NorthZoneBuildingsProps) {
       curveSegments: 28,
     });
     geo.rotateX(-Math.PI / 2);
-    geo.translate(0, 0, 38);
+    geo.translate(16, 0, 0);
     geo.computeVertexNormals();
     return geo;
   }, []);
@@ -76,13 +76,13 @@ export function NorthZoneBuildings({ onSelect }: NorthZoneBuildingsProps) {
         <mesh geometry={crescentGeo} position={[0, 12.1, 0]} scale={[1.01, 0.08, 1.01]} castShadow>
           <meshStandardMaterial color="#4b453f" roughness={0.75} />
         </mesh>
-        {/* Rectangular north annex behind crescent */}
+        {/* Rectangular east annex next to crescent */}
         <WingBlock
-          position={[8, 0, -14]}
-          rotationY={-0.18}
-          width={30}
+          position={[10, 0, 0]}
+          rotationY={Math.PI / 2}
+          width={26}
           height={10}
-          depth={13}
+          depth={14}
           stories={2}
           wallColor="#e2e8f0"
           roofColor="#cbd5e1"
@@ -192,7 +192,7 @@ export function NorthZoneBuildings({ onSelect }: NorthZoneBuildingsProps) {
         ))}
       </group>
 
-      {/* ==================== 5. 初中部宿舍 · 北翼楼 (L型临湖宿舍) ==================== */}
+      {/* ==================== 5. 初中部宿舍 · 北翼楼 (L型临湖宿舍, px=838..902, py=48..118) ==================== */}
       <group
         position={dormNorth.position}
         rotation={[0, dormNorth.rotationY, 0]}
@@ -202,37 +202,47 @@ export function NorthZoneBuildings({ onSelect }: NorthZoneBuildingsProps) {
         }}
       >
         <WingBlock
-          position={[0, 0, -8]}
-          width={56}
+          position={[0, 0, -10]}
+          width={42}
           height={16}
-          depth={14}
+          depth={12}
           stories={4}
           wallColor="#e5e7eb"
           roofColor="#334155"
-          windowCols={16}
+          windowCols={12}
         />
         <WingBlock
-          position={[-20, 0, 8]}
+          position={[14, 0, 4]}
           rotationY={Math.PI / 2}
-          width={24}
+          width={28}
           height={16}
-          depth={14}
+          depth={12}
           stories={4}
           wallColor="#e5e7eb"
           roofColor="#334155"
           windowCols={8}
         />
-        {/* Corner turret accents seen in aerial photos */}
-        {[-26, 26].map((tx, i) => (
-          <mesh key={i} position={[tx, 20, -8]} castShadow>
-            <coneGeometry args={[2.8, 4.2, 4]} />
+        <WingBlock
+          position={[-14, 0, 4]}
+          rotationY={Math.PI / 2}
+          width={28}
+          height={16}
+          depth={12}
+          stories={4}
+          wallColor="#e5e7eb"
+          roofColor="#334155"
+          windowCols={8}
+        />
+        {[-18, 18].map((tx, i) => (
+          <mesh key={i} position={[tx, 20, -10]} castShadow>
+            <coneGeometry args={[2.5, 4.0, 4]} />
             <meshStandardMaterial color="#3f6272" roughness={0.68} />
           </mesh>
         ))}
       </group>
 
-      {/* ==================== 6. 小操场升旗台 (Flag-Raising Platform) ==================== */}
-      <group position={[-93, 0, -150]} rotation={[0, 0.34, 0]}>
+      {/* ==================== 6. 小操场升旗台 (Flag-Raising Platform, px=758, py=192) ==================== */}
+      <group position={pxPos(758, 192)} rotation={[0, -0.23, 0]}>
         {/* Raised stone stage & steps */}
         <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
           <boxGeometry args={[4.5, 0.9, 18]} />

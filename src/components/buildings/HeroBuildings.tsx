@@ -22,16 +22,17 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
   const guiyuan = getSpec('guiyuan');
   const songyuan = getSpec('songyuan');
 
-  // Triangular Atrium ExtrudeGeometry with circular center hole
+  // Triangular Atrium ExtrudeGeometry with circular center hole (calibrated to px=885..995, py=315..400)
+  // Note: ExtrudeGeometry is in XY plane, then rotateX(-Math.PI/2) maps +Y_shape -> -Z_world (North)!
   const triGeometry = useMemo(() => {
     const shape = new THREE.Shape();
-    shape.moveTo(-26, 20);
-    shape.lineTo(28, 12);
-    shape.lineTo(14, -24);
+    shape.moveTo(-40, -14); // West tip (world dx=-40, dz=+14)
+    shape.lineTo(28, 32);   // NE corner (world dx=+28, dz=-32)
+    shape.lineTo(28, -20);  // SE corner (world dx=+28, dz=+20)
     shape.closePath();
 
     const hole = new THREE.Path();
-    hole.absarc(4, 2, 8.2, 0, Math.PI * 2, true);
+    hole.absarc(5, 0, 8.0, 0, Math.PI * 2, true);
     shape.holes.push(hole);
 
     const geo = new THREE.ExtrudeGeometry(shape, {
@@ -56,11 +57,11 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
           onSelect(middleMain);
         }}
       >
-        {/* Main 5-story linear wing */}
+        {/* Main 5-story linear wing (px=705..875 -> 110m wide, py=555..595 -> 25m deep) */}
         <WingBlock
-          width={114}
+          width={110}
           height={18}
-          depth={23}
+          depth={24}
           stories={5}
           wallColor="#edf0f5"
           roofColor="#2b323c"
@@ -69,27 +70,27 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
         />
         {/* Signature central skylight spine along the ridge */}
         {Array.from({ length: 18 }, (_, i) => (
-          <mesh key={i} position={[-48 + i * 5.6, 20.6, 0]} castShadow>
-            <boxGeometry args={[3.6, 1.1, 6.2]} />
+          <mesh key={i} position={[-46 + i * 5.4, 20.6, 0]} castShadow>
+            <boxGeometry args={[3.5, 1.1, 6.2]} />
             <meshStandardMaterial color="#7dd3fc" roughness={0.12} metalness={0.35} />
           </mesh>
         ))}
-        {/* Attached NW Cylindrical Rotunda Pavilion */}
+        {/* Attached NW Cylindrical Rotunda Pavilion (px=696, py=542 -> dx=-60, dz=-21) */}
         <RotundaDrum
-          position={[-64, 0, -10]}
-          radius={12.5}
+          position={[-58, 0, -20]}
+          radius={11.5}
           height={14}
           stories={3}
           wallColor="#e2e8f0"
           roofColor="#2b323c"
         />
-        {/* Connecting link wing between rotunda and main block */}
+        {/* Angled link wing on NW side of Rotunda */}
         <WingBlock
-          position={[-68, 0, -24]}
-          rotationY={0.18}
+          position={[-72, 0, -22]}
+          rotationY={-0.72}
           width={18}
-          height={10}
-          depth={12}
+          height={11}
+          depth={11}
           stories={2}
           wallColor="#e2e8f0"
           roofColor="#374151"
@@ -98,7 +99,7 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
         />
       </group>
 
-      {/* 初中部北侧附楼 */}
+      {/* 初中部北侧附楼 (px=822..865, py=492..548 -> N-S oriented block at NE of 初中部) */}
       <group
         position={middleAnnex.position}
         rotation={[0, middleAnnex.rotationY, 0]}
@@ -108,23 +109,22 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
         }}
       >
         <WingBlock
-          width={42}
+          width={24}
           height={13}
-          depth={18}
+          depth={36}
           stories={3}
           wallColor="#e2e8f0"
           roofColor="#64748b"
           roofType="flat"
-          windowCols={12}
+          windowCols={10}
         />
-        {/* Rooftop mechanical penthouse */}
-        <mesh position={[6, 14.2, 0]} castShadow>
-          <boxGeometry args={[12, 2.2, 7]} />
+        <mesh position={[0, 14.2, -4]} castShadow>
+          <boxGeometry args={[10, 2.2, 14]} />
           <meshStandardMaterial color="#94a3b8" roughness={0.75} />
         </mesh>
       </group>
 
-      {/* ==================== 2. 小学部教学楼 (双内庭院 + 青灰尖顶屋面) ==================== */}
+      {/* ==================== 2. 小学部教学楼 (px=735..805, py=278..350 -> 46m x 46m) ==================== */}
       <group
         position={elemTeaching.position}
         rotation={[0, elemTeaching.rotationY, 0]}
@@ -134,51 +134,51 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
         }}
       >
         <CourtyardRing
-          width={64}
-          depth={44}
-          wingThickness={8.5}
+          width={46}
+          depth={46}
+          wingThickness={7.8}
           height={15}
           stories={4}
           wallColor="#f1f5f9"
           roofColor="#1f4e5f"
           courtyardColor="#4f9442"
         />
-        {/* Central divider wing creating double courtyard */}
+        {/* Central N-S divider wing creating double courtyard */}
         <WingBlock
-          position={[4, 0, 0]}
+          position={[2, 0, 0]}
           rotationY={Math.PI / 2}
-          width={28}
+          width={30}
           height={14}
-          depth={7}
+          depth={6.5}
           stories={4}
           wallColor="#f1f5f9"
           roofColor="#1f4e5f"
           windowCols={8}
         />
-        {/* Glass atrium skylight strips over inner courtyards */}
-        <mesh position={[-12, 11.5, 0]} castShadow>
-          <boxGeometry args={[16, 0.5, 22]} />
+        {/* Glass atrium skylight over west inner courtyard */}
+        <mesh position={[-8, 11.5, 0]} castShadow>
+          <boxGeometry args={[12, 0.5, 26]} />
           <meshStandardMaterial color="#93c5fd" roughness={0.15} metalness={0.25} transparent opacity={0.75} />
         </mesh>
-        {/* 4 Pointed corner turret peaks (castle-style dormers seen in photos) */}
+        {/* 4 Pointed corner turret peaks */}
         {[
-          [-28, -18],
-          [28, -18],
-          [-28, 18],
-          [28, 18],
+          [-19, -19],
+          [19, -19],
+          [-19, 19],
+          [19, 19],
         ].map(([tx, tz], idx) => (
           <mesh key={idx} position={[tx, 19.5, tz]} castShadow>
-            <coneGeometry args={[3.2, 4.8, 4]} />
+            <coneGeometry args={[2.8, 4.5, 4]} />
             <meshStandardMaterial color="#1f4e5f" roughness={0.65} />
           </mesh>
         ))}
-        {/* East angled annex wing */}
+        {/* NE annex wing (px=810..842, py=245..285) */}
         <WingBlock
-          position={[41, 0, -6]}
-          rotationY={-0.35}
-          width={24}
+          position={[31, 0, -24]}
+          rotationY={0}
+          width={18}
           height={13}
-          depth={14}
+          depth={24}
           stories={3}
           wallColor="#f1f5f9"
           roofColor="#2b323c"
@@ -187,7 +187,7 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
         />
       </group>
 
-      {/* ==================== 3. 报告厅与艺术圆楼 ==================== */}
+      {/* ==================== 3. 报告厅与艺术圆楼 (px=648..722, py=308..375) ==================== */}
       <group
         position={auditorium.position}
         rotation={[0, auditorium.rotationY, 0]}
@@ -196,34 +196,34 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
           onSelect(auditorium);
         }}
       >
-        {/* Terracotta/brown pitched-roof main auditorium hall */}
+        {/* Terracotta/brown pitched-roof main auditorium hall (NW side) */}
         <WingBlock
-          position={[-8, 0, 4]}
-          width={28}
-          height={13}
-          depth={18}
+          position={[-12, 0, -4]}
+          width={24}
+          height={12.5}
+          depth={15}
           stories={3}
           wallColor="#ede9e3"
           roofColor="#7c4a33"
-          roofHeight={2.6}
-          windowCols={10}
+          roofHeight={2.5}
+          windowCols={8}
         />
-        {/* Adjacent cylindrical drum building */}
+        {/* Adjacent cylindrical drum building (SE side) */}
         <RotundaDrum
-          position={[15, 0, 3]}
-          radius={10.5}
-          height={13}
+          position={[11, 0, 8]}
+          radius={9.0}
+          height={12.5}
           stories={3}
           wallColor="#e2e8f0"
           roofColor="#2b323c"
         />
-        {/* Connecting north courtyard wing */}
+        {/* Connecting NE small courtyard wing */}
         <CourtyardRing
-          position={[2, 0, -14]}
-          width={32}
-          depth={18}
-          wingThickness={5.5}
-          height={11}
+          position={[6, 0, -8]}
+          width={20}
+          depth={16}
+          wingThickness={4.5}
+          height={10.5}
           stories={3}
           wallColor="#e2e8f0"
           roofColor="#334155"
@@ -244,12 +244,12 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
           <meshStandardMaterial map={triFacadeTex} roughness={0.62} metalness={0.1} />
         </mesh>
         {/* Central atrium glass skylight ring */}
-        <mesh position={[4, 16.3, 2]} castShadow>
-          <cylinderGeometry args={[8.6, 8.6, 0.8, 32, 1, true]} />
+        <mesh position={[5, 16.3, 0]} castShadow>
+          <cylinderGeometry args={[8.4, 8.4, 0.8, 32, 1, true]} />
           <meshStandardMaterial color="#38bdf8" roughness={0.15} metalness={0.3} side={THREE.DoubleSide} />
         </mesh>
-        <mesh position={[4, 16.5, 2]}>
-          <circleGeometry args={[8.2, 32]} />
+        <mesh position={[5, 16.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[8.0, 32]} />
           <meshStandardMaterial color="#1e293b" roughness={0.5} side={THREE.DoubleSide} />
         </mesh>
       </group>
@@ -264,7 +264,7 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
         }}
       >
         <CourtyardRing
-          width={32}
+          width={34}
           depth={30}
           wingThickness={7.2}
           height={15}
@@ -283,7 +283,7 @@ export function HeroBuildings({ onSelect }: HeroBuildingsProps) {
         }}
       >
         <CourtyardRing
-          width={32}
+          width={34}
           depth={30}
           wingThickness={7.2}
           height={15}

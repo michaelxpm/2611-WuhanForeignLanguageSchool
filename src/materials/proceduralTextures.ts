@@ -295,3 +295,85 @@ export function getFlagWallTexture(): THREE.CanvasTexture {
 
   return finalizeTexture(key, canvas, 1, 1, true);
 }
+
+export function getFootballPitchTexture(): THREE.CanvasTexture {
+  const key = 'football-pitch';
+  if (textureCache.has(key)) return textureCache.get(key)!;
+
+  const w = 1024;
+  const h = 680;
+  const [canvas, ctx] = makeCanvas(w, h);
+
+  // Alternating mowed grass stripes
+  const stripes = 14;
+  const sw = w / stripes;
+  for (let i = 0; i < stripes; i++) {
+    ctx.fillStyle = i % 2 === 0 ? '#3f8c36' : '#4a9e40';
+    ctx.fillRect(i * sw, 0, sw + 1, h);
+  }
+
+  // Crisp white FIFA pitch markings
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.lineWidth = 4;
+  const pad = 24;
+  const pw = w - pad * 2;
+  const ph = h - pad * 2;
+  ctx.strokeRect(pad, pad, pw, ph);
+
+  // Halfway line & center circle
+  ctx.beginPath();
+  ctx.moveTo(w / 2, pad);
+  ctx.lineTo(w / 2, h - pad);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, 72, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Penalty boxes
+  ctx.strokeRect(pad, h / 2 - 145, 130, 290);
+  ctx.strokeRect(w - pad - 130, h / 2 - 145, 130, 290);
+
+  // Goal areas
+  ctx.strokeRect(pad, h / 2 - 70, 50, 140);
+  ctx.strokeRect(w - pad - 50, h / 2 - 70, 50, 140);
+
+  return finalizeTexture(key, canvas, 1, 1, true);
+}
+
+export function getCourtTexture(surfaceHex = '#b94a3e', lineHex = '#f8fafc'): THREE.CanvasTexture {
+  const key = `court-${surfaceHex}-${lineHex}`;
+  if (textureCache.has(key)) return textureCache.get(key)!;
+
+  const w = 256;
+  const h = 512;
+  const [canvas, ctx] = makeCanvas(w, h);
+
+  ctx.fillStyle = surfaceHex;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.strokeStyle = lineHex;
+  ctx.lineWidth = 4;
+  ctx.strokeRect(18, 22, w - 36, h - 44);
+
+  // Center line & circle
+  ctx.beginPath();
+  ctx.moveTo(18, h / 2);
+  ctx.lineTo(w - 18, h / 2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, 30, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Three-point arcs
+  ctx.beginPath();
+  ctx.arc(w / 2, 42, 56, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(w / 2, h - 42, 56, Math.PI + 0.2, Math.PI * 2 - 0.2);
+  ctx.stroke();
+
+  return finalizeTexture(key, canvas, 1, 1, true);
+}

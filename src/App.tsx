@@ -32,7 +32,7 @@ export function App() {
               武汉外国语学校 · 3D 数字校园
             </h1>
             <p className="text-[11px] text-slate-400">
-              Wuhan Foreign Languages School · Phase 4 North Zone & Flag Platform
+              Wuhan Foreign Languages School · Phase 5 Athletics & Foliage
             </p>
           </div>
         </div>

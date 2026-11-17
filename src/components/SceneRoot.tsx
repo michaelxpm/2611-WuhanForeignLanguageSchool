@@ -4,25 +4,11 @@ import { Grid, Html, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { BUILDINGS, BuildingSpec, CameraPreset } from '../data/campusLayout';
+import { AthleticsZone } from './AthleticsZone';
+import { CampusFoliage } from './CampusFoliage';
 import { CampusGround } from './CampusGround';
 import { HeroBuildings } from './buildings/HeroBuildings';
 import { NorthZoneBuildings } from './buildings/NorthZoneBuildings';
-
-const MODELED_BUILDING_IDS = new Set([
-  'middle-school-main',
-  'middle-school-annex',
-  'elementary-teaching',
-  'auditorium',
-  'triangular-atrium',
-  'guiyuan',
-  'songyuan',
-  'middle-canteen',
-  'zhuyuan',
-  'meiyuan',
-  'elementary-canteen',
-  'dorm-octagonal',
-  'dorm-north-wing',
-]);
 
 interface CameraRigProps {
   activePreset: CameraPreset | null;
@@ -92,67 +78,6 @@ function CameraRig({ activePreset, selectedBuilding, onTransitionEnd }: CameraRi
         desiredTarget.current = null;
       }}
     />
-  );
-}
-
-interface MassingBlockProps {
-  spec: BuildingSpec;
-  isSelected: boolean;
-  showLabels: boolean;
-  onSelect: (spec: BuildingSpec) => void;
-}
-
-function MassingBlock({ spec, isSelected, showLabels, onSelect }: MassingBlockProps) {
-  const [w, h, d] = spec.dimensions;
-
-  return (
-    <group
-      position={spec.position}
-      rotation={[0, spec.rotationY, 0]}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(spec);
-      }}
-    >
-      {/* Building body massing */}
-      <mesh position={[0, h / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[w, h, d]} />
-        <meshStandardMaterial
-          color={isSelected ? '#38bdf8' : spec.wallColor}
-          roughness={0.8}
-          metalness={0.05}
-        />
-      </mesh>
-      {/* Roof cap massing */}
-      <mesh position={[0, h + 0.4, 0]} castShadow receiveShadow>
-        <boxGeometry args={[w + 0.8, 0.8, d + 0.8]} />
-        <meshStandardMaterial
-          color={isSelected ? '#0284c7' : spec.roofColor}
-          roughness={0.7}
-          metalness={0.1}
-        />
-      </mesh>
-
-      {showLabels && (
-        <Html
-          position={[0, h + 5, 0]}
-          center
-          distanceFactor={260}
-          occlude={false}
-          style={{ pointerEvents: 'none' }}
-        >
-          <div
-            className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap shadow-md border ${
-              isSelected
-                ? 'bg-sky-500/95 text-white border-sky-200'
-                : 'bg-slate-900/80 text-slate-100 border-slate-700/80'
-            }`}
-          >
-            {spec.nameZh}
-          </div>
-        </Html>
-      )}
-    </group>
   );
 }
 
@@ -249,25 +174,13 @@ export function SceneRoot({
       {/* Phase 4 North Zone Buildings & 升旗台 */}
       <NorthZoneBuildings onSelect={(b) => onSelectBuilding(b)} />
 
-      {/* Remaining Massing Blocks (Athletics: to be replaced in Phase 5) */}
-      {BUILDINGS.filter(
-        (b) =>
-          b.id !== 'central-roundabout' &&
-          b.id !== 'west-gate' &&
-          !MODELED_BUILDING_IDS.has(b.id)
-      ).map((b) => (
-        <MassingBlock
-          key={b.id}
-          spec={b}
-          isSelected={selectedBuilding?.id === b.id}
-          showLabels={showLabels}
-          onSelect={onSelectBuilding}
-        />
-      ))}
+      {/* Phase 5 Athletics & Instanced Foliage */}
+      <AthleticsZone onSelect={(b) => onSelectBuilding(b)} />
+      <CampusFoliage />
 
-      {/* Floating 3D Labels for Modeled Buildings */}
+      {/* Floating 3D Labels for All Campus Landmarks */}
       {showLabels &&
-        BUILDINGS.filter((b) => MODELED_BUILDING_IDS.has(b.id)).map((b) => (
+        BUILDINGS.map((b) => (
           <Html
             key={`label-${b.id}`}
             position={[b.position[0], b.dimensions[1] + 5, b.position[2]]}

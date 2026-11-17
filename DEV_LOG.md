@@ -97,6 +97,26 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Click `小操场 · 升旗台` preset and zoom in on the east side of the track to verify the gabled motto wall (`从这里走向世界和未来`), emblem, and 3 flagpoles.
   - [ ] Inspect `梅苑` & `竹苑` arched top-floor windows, `初中部食堂` crescent curve, and the NW `八角楼` octagonal courtyard.
 
+---
+
+## Phase 5 — Athletics, Courts & Instanced Landscape Props (Zone D)
+- **Status**: Completed
+- **Git Tag**: `phase-5` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-5))
+- **Working Steps**:
+  1. Added `getFootballPitchTexture()` (mowed grass stripes + crisp FIFA pitch markings) and `getCourtTexture()` (basketball/tennis court lines) to `src/materials/proceduralTextures.ts`.
+  2. Built `src/components/AthleticsZone.tsx` modeling the Main 400 m Stadium (red EPDM track, striped pitch, goalposts, stepped concrete bleachers, flanking 2F locker wings, 5 white tensile-membrane arched canopies, and paved parking lot), `小操场` + `小足球场`, and the 8 South outdoor courts (6 red basketball courts with 3D hoops + 2 teal tennis courts).
+  3. Built `src/components/CampusFoliage.tsx` using `THREE.InstancedMesh` to render lush multi-tier campus trees along `北太子湖`, `中心花坛`, `扇形广场`, `寻真园`, `太子湖北路`, `东风大道`, and stadium perimeters at high FPS.
+  4. Removed all remaining Phase 1 placeholder massing blocks from `SceneRoot.tsx`.
+- **How to Access Phase 5**:
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-5`
+  - **Local**: `git checkout phase-5 && npm.cmd install && npm.cmd run dev`
+- **Highlight**: 100% of the campus is now modeled—every building, stadium, court, plaza, lakefront, and tree-lined avenue—with zero placeholder boxes left.
+- **Validation Checklist**:
+  - [ ] Click `主体育场 · 张拉膜看台` preset: verify the 5-bay white tensile-membrane canopies, stepped bleachers, striped football pitch, goalposts, and 400 m track.
+  - [ ] Pan southeast of the stadium to inspect the 6 red basketball courts (with hoops) and 2 teal tennis courts along `太子湖北路`.
+  - [ ] Pan over the campus avenues and `北太子湖` shoreline to verify lush instanced trees and smooth orbit FPS.
+
+
 
 
 

@@ -191,6 +191,27 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
               <meshStandardMaterial color="#f8fafc" roughness={0.7} />
             </mesh>
           ))}
+          {/* Parked cars */}
+          {[
+            { x: -16, z: -7, c: '#e2e8f0' },
+            { x: -8, z: -7, c: '#334155' },
+            { x: -4, z: -7, c: '#1e3a8a' },
+            { x: 4, z: -7, c: '#94a3b8' },
+            { x: 12, z: -7, c: '#dc2626' },
+            { x: -12, z: 7, c: '#475569' },
+            { x: 0, z: 7, c: '#f8fafc' },
+          ].map((car, ci) => (
+            <group key={ci} position={[car.x, 0, car.z]}>
+              <mesh position={[0, 0.45, 0]} castShadow>
+                <boxGeometry args={[1.8, 0.65, 4.1]} />
+                <meshStandardMaterial color={car.c} roughness={0.35} metalness={0.4} />
+              </mesh>
+              <mesh position={[0, 0.95, -0.2]} castShadow>
+                <boxGeometry args={[1.5, 0.48, 2.1]} />
+                <meshStandardMaterial color="#1e293b" roughness={0.2} metalness={0.5} />
+              </mesh>
+            </group>
+          ))}
         </group>
       </group>
 
@@ -227,10 +248,17 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
       {/* ==================== 3. SOUTH OUTDOOR COURTS STRIP (px=235..485, py=580 -> Z=97.5) ==================== */}
       <group position={pxPos(360, 580, 0.14)}>
         {/* West Teal Tennis Court (px=238 -> dx=-79) */}
-        <mesh position={[-79, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[28, 30]} />
-          <meshStandardMaterial map={tealCourtTex} roughness={0.82} />
-        </mesh>
+        <group position={[-79, 0, 0]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+            <planeGeometry args={[28, 30]} />
+            <meshStandardMaterial map={tealCourtTex} roughness={0.82} />
+          </mesh>
+          {/* Tennis Net */}
+          <mesh position={[0, 0.52, 0]} castShadow>
+            <boxGeometry args={[12.8, 0.95, 0.08]} />
+            <meshStandardMaterial color="#e2e8f0" roughness={0.7} transparent opacity={0.85} />
+          </mesh>
+        </group>
         {/* 6 Red/Teal Basketball Courts (px=278..438 -> dx=-52..+48) */}
         {Array.from({ length: 6 }, (_, i) => {
           const cx = -50 + i * 19.5;
@@ -256,10 +284,37 @@ export function AthleticsZone({ onSelect }: AthleticsZoneProps) {
           );
         })}
         {/* East Teal Tennis Court (px=482 -> dx=+79) */}
-        <mesh position={[79, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[28, 30]} />
-          <meshStandardMaterial map={tealCourtTex} roughness={0.82} />
-        </mesh>
+        <group position={[79, 0, 0]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+            <planeGeometry args={[28, 30]} />
+            <meshStandardMaterial map={tealCourtTex} roughness={0.82} />
+          </mesh>
+          {/* Tennis Net */}
+          <mesh position={[0, 0.52, 0]} castShadow>
+            <boxGeometry args={[12.8, 0.95, 0.08]} />
+            <meshStandardMaterial color="#e2e8f0" roughness={0.7} transparent opacity={0.85} />
+          </mesh>
+        </group>
+
+        {/* Court Perimeter Fencing & Floodlight Poles */}
+        {[-15.5, 15.5].map((fz, fi) => (
+          <mesh key={fi} position={[0, 1.4, fz]} castShadow>
+            <boxGeometry args={[188, 0.08, 0.08]} />
+            <meshStandardMaterial color="#15803d" roughness={0.5} />
+          </mesh>
+        ))}
+        {[-94, -58, -18, 22, 62, 94].map((lx, li) => (
+          <group key={li} position={[lx, 0, -16]}>
+            <mesh position={[0, 4.2, 0]} castShadow>
+              <cylinderGeometry args={[0.1, 0.14, 8.4, 8]} />
+              <meshStandardMaterial color="#475569" metalness={0.7} roughness={0.35} />
+            </mesh>
+            <mesh position={[0, 8.4, 0.3]}>
+              <boxGeometry args={[1.1, 0.4, 0.25]} />
+              <meshStandardMaterial color="#f8fafc" emissive="#fef08a" emissiveIntensity={0.4} />
+            </mesh>
+          </group>
+        ))}
       </group>
     </group>
   );

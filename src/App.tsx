@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Building2,
   Compass,
@@ -9,6 +9,9 @@ import {
   MapPin,
   Moon,
   Orbit,
+  Play,
+  RotateCw,
+  Square,
   Sun,
   Sunrise,
   Sunset,
@@ -34,6 +37,23 @@ export function App() {
   const [cameraMode, setCameraMode] = useState<'orbit' | 'walk'>('orbit');
   const [showDirectory, setShowDirectory] = useState(false);
   const [yawDeg, setYawDeg] = useState(0);
+  const [autoOrbit, setAutoOrbit] = useState(false);
+  const [autoTour, setAutoTour] = useState(false);
+
+  useEffect(() => {
+    if (!autoTour) return;
+    let idx = 0;
+    setCameraMode('orbit');
+    setSelectedBuilding(null);
+    setAutoOrbit(false);
+    setActivePreset(CAMERA_PRESETS[0]);
+
+    const timer = window.setInterval(() => {
+      idx = (idx + 1) % CAMERA_PRESETS.length;
+      setActivePreset(CAMERA_PRESETS[idx]);
+    }, 5200);
+    return () => window.clearInterval(timer);
+  }, [autoTour]);
 
   return (
     <div className="relative w-full h-full bg-slate-950 overflow-hidden">
@@ -44,8 +64,11 @@ export function App() {
         showGrid={showGrid}
         timeOfDay={timeOfDay}
         cameraMode={cameraMode}
+        autoOrbit={autoOrbit}
         onSelectBuilding={(b) => {
           setSelectedBuilding(b);
+          setAutoTour(false);
+          if (!b) setAutoOrbit(false);
           if (b) {
             setCameraMode('orbit');
             setActivePreset(null);
@@ -69,7 +92,7 @@ export function App() {
             武汉外国语学校 · 3D 数字校园
           </h1>
           <p className="text-[11px] text-slate-400">
-            Wuhan Foreign Languages School · Phase 6 Lighting & Walk Mode
+            Wuhan Foreign Languages School · Phase 7 Final
           </p>
         </div>
       </div>
@@ -95,6 +118,19 @@ export function App() {
             );
           })}
         </div>
+
+        {/* Guided Auto-Tour */}
+        <button
+          onClick={() => setAutoTour((v) => !v)}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border backdrop-blur-md shadow-lg transition cursor-pointer ${
+            autoTour
+              ? 'bg-rose-500 text-white border-rose-300'
+              : 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border-slate-700/70'
+          }`}
+        >
+          {autoTour ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 text-sky-400" />}
+          <span>{autoTour ? '停止导览' : '自动导览'}</span>
+        </button>
 
         {/* Camera Mode Toggle */}
         <button
@@ -232,6 +268,17 @@ export function App() {
               尺寸: {selectedBuilding.dimensions[0]}m × {selectedBuilding.dimensions[2]}m
             </span>
           </div>
+          <button
+            onClick={() => setAutoOrbit((v) => !v)}
+            className={`mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition cursor-pointer ${
+              autoOrbit
+                ? 'bg-sky-500 text-white'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+            }`}
+          >
+            <RotateCw className={`w-3.5 h-3.5 ${autoOrbit ? 'animate-spin' : ''}`} />
+            <span>{autoOrbit ? '停止环绕此建筑' : '环绕此建筑'}</span>
+          </button>
         </div>
       )}
 

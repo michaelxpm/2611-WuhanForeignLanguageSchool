@@ -15,11 +15,12 @@ import { NorthZoneBuildings } from './buildings/NorthZoneBuildings';
 interface CameraRigProps {
   activePreset: CameraPreset | null;
   selectedBuilding: BuildingSpec | null;
+  autoOrbit: boolean;
   onTransitionEnd: () => void;
   onYawChange?: (yawDeg: number) => void;
 }
 
-function CameraRig({ activePreset, selectedBuilding, onTransitionEnd, onYawChange }: CameraRigProps) {
+function CameraRig({ activePreset, selectedBuilding, autoOrbit, onTransitionEnd, onYawChange }: CameraRigProps) {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { camera } = useThree();
   const desiredPos = useRef<THREE.Vector3 | null>(null);
@@ -78,6 +79,8 @@ function CameraRig({ activePreset, selectedBuilding, onTransitionEnd, onYawChang
       makeDefault
       enableDamping
       dampingFactor={0.07}
+      autoRotate={autoOrbit}
+      autoRotateSpeed={1.2}
       maxPolarAngle={Math.PI / 2 - 0.03}
       minDistance={10}
       maxDistance={650}
@@ -119,6 +122,7 @@ interface SceneRootProps {
   showGrid: boolean;
   timeOfDay: TimeOfDay;
   cameraMode: 'orbit' | 'walk';
+  autoOrbit: boolean;
   onSelectBuilding: (spec: BuildingSpec | null) => void;
   onTransitionEnd: () => void;
   onYawChange?: (yawDeg: number) => void;
@@ -131,6 +135,7 @@ export function SceneRoot({
   showGrid,
   timeOfDay,
   cameraMode,
+  autoOrbit,
   onSelectBuilding,
   onTransitionEnd,
   onYawChange,
@@ -201,6 +206,7 @@ export function SceneRoot({
         <CameraRig
           activePreset={activePreset}
           selectedBuilding={selectedBuilding}
+          autoOrbit={autoOrbit}
           onTransitionEnd={onTransitionEnd}
           onYawChange={onYawChange}
         />

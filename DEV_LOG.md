@@ -153,6 +153,27 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Click `第一人称漫步`, use `WASD` + `Shift` + mouse drag to walk through `西北门` and `扇形广场`.
   - [ ] Open `建筑导览` and jump to any of the 17 campus landmarks.
 
+---
+
+## Phase 7 — Specification Audit, Visual Polish & Final Deployment
+- **Status**: Completed
+- **Git Tag**: `phase-7` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-7))
+- **Working Steps**:
+  1. Audited every requirement in `implementation_plan.md` against the live codebase.
+  2. Added remaining specification details in `AthleticsZone.tsx`: 3D tennis nets on the 2 teal tennis courts, perimeter court fencing rails, 6 court floodlight poles, and 7 parked cars in the stadium parking lot.
+  3. Added `自动导览` (Guided Auto-Tour cycling through all campus presets) and `环绕此建筑` (per-building auto-orbit) in `App.tsx` and `SceneRoot.tsx`.
+  4. Rebuilt `dist/assets/app.js` & `dist/assets/app.css` and deployed to GitHub Pages.
+- **How to Access Phase 7**:
+  - **Live Website**: `https://michaelxpm.github.io/2611-WuhanForeignLanguageSchool/`
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-7`
+  - **Local**: `git checkout phase-7 && npm.cmd install && npm.cmd run dev` (or `git checkout main`)
+- **Highlight**: 100% of `implementation_plan.md` specifications implemented, verified, and live on GitHub Pages.
+- **Validation Checklist**:
+  - [ ] Click `自动导览` to watch the smooth guided flyover across all campus presets.
+  - [ ] Click any building and click `环绕此建筑` to orbit around it smoothly.
+  - [ ] Inspect the South outdoor courts (tennis nets, fencing, floodlights) and stadium parking lot (parked cars).
+
+
 
 
 

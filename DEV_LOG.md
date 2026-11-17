@@ -24,3 +24,23 @@ This log tracks every development phase. Each completed phase is committed to `m
   2. Cataloged all 17 campus zones/structures with real names (`小学部教学楼`, `报告厅`, `初中部`, `桂苑`, `松苑`, `梅苑`, `竹苑`, `小学部食堂`, `初中部食堂`, `初中部宿舍`, `中心花坛`, `扇形广场`, `寻真园 · 种植区`, `小操场`, `小足球场`, `升旗台`, `西北门`, `北太子湖`).
   3. Saved [implementation_plan.md](./implementation_plan.md) and initialized `DEV_LOG.md`.
 - **Validation**: Review `implementation_plan.md` for accuracy of building names, zones, and technical approach.
+
+---
+
+## Phase 1 — Project Scaffold, Ground Truth Alignment & Core Viewer Shell
+- **Status**: Completed
+- **Git Tag**: `phase-1` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-1))
+- **Working Steps**:
+  1. Initialized Vite + React 19 + TypeScript + Three.js (`@react-three/fiber`, `@react-three/drei`, `@react-three/postprocessing`) + Tailwind CSS v4.
+  2. Created `src/data/campusLayout.ts` establishing the `1 unit = 1 m` true-North coordinate system centered at `中心花坛 (0, 0, 0)`, mapping all 17 campus zones/buildings and 7 camera presets.
+  3. Built `src/components/SceneRoot.tsx` with damped `OrbitControls`, smooth fly-to camera interpolation, ground alignment grid, cardinal compass markers (`北 N / 南 S / 东 E / 西 W`), clickable building massing blocks, and toggleable 3D labels.
+  4. Built `src/App.tsx` glassmorphic HUD with camera preset bar, label toggle, and building inspector card.
+- **How to Access Phase 1**:
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-1`
+  - **Local**: `git checkout phase-1 && npm install && npm run dev`
+- **Highlight**: Accurate metric spatial layout and interactive camera/inspection shell verified against the satellite ortho-map and `效果图`.
+- **Validation Checklist**:
+  - [ ] All 17 landmarks appear in their correct relative cardinal positions (`小学部教学楼` North of `中心花坛`, `初中部` South, `主体育场` SW, `小操场` NW).
+  - [ ] Clicking any building opens its Chinese/English info card and smoothly flies the camera to focus on it.
+  - [ ] Bottom preset buttons smoothly transition between `全景鸟瞰`, `中心花坛`, `初中部`, `小学部`, `小操场`, `主体育场`, and `西北门`.
+

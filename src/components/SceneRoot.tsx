@@ -4,6 +4,7 @@ import { Grid, Html, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { BUILDINGS, BuildingSpec, CameraPreset } from '../data/campusLayout';
+import { CampusGround } from './CampusGround';
 
 interface CameraRigProps {
   activePreset: CameraPreset | null;
@@ -164,6 +165,7 @@ interface SceneRootProps {
   activePreset: CameraPreset | null;
   selectedBuilding: BuildingSpec | null;
   showLabels: boolean;
+  showGrid: boolean;
   onSelectBuilding: (spec: BuildingSpec | null) => void;
   onTransitionEnd: () => void;
 }
@@ -172,6 +174,7 @@ export function SceneRoot({
   activePreset,
   selectedBuilding,
   showLabels,
+  showGrid,
   onSelectBuilding,
   onTransitionEnd,
 }: SceneRootProps) {
@@ -202,25 +205,25 @@ export function SceneRoot({
         shadow-bias={-0.0005}
       />
 
-      {/* Base Ground Plane & Alignment Grid */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-80, -0.05, -40]} receiveShadow>
-        <planeGeometry args={[900, 750]} />
-        <meshStandardMaterial color="#86efac" roughness={0.95} />
-      </mesh>
-      <Grid
-        position={[-80, 0.02, -40]}
-        args={[800, 650]}
-        cellSize={10}
-        cellThickness={0.5}
-        cellColor="#475569"
-        sectionSize={50}
-        sectionThickness={1}
-        sectionColor="#1e293b"
-        fadeDistance={750}
-      />
+      {/* Campus Ground, Plazas, Roads, Gatehouse & 北太子湖 */}
+      <CampusGround />
 
-      {/* Campus Massing Blocks */}
-      {BUILDINGS.map((b) => (
+      {showGrid && (
+        <Grid
+          position={[-80, 0.12, -40]}
+          args={[800, 650]}
+          cellSize={10}
+          cellThickness={0.5}
+          cellColor="#475569"
+          sectionSize={50}
+          sectionThickness={1}
+          sectionColor="#1e293b"
+          fadeDistance={750}
+        />
+      )}
+
+      {/* Campus Massing Blocks (skip ground-only landmarks now modeled in CampusGround) */}
+      {BUILDINGS.filter((b) => b.id !== 'central-roundabout' && b.id !== 'west-gate').map((b) => (
         <MassingBlock
           key={b.id}
           spec={b}

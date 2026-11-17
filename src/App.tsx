@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Compass, Eye, EyeOff, MapPin, X } from 'lucide-react';
+import { Compass, Eye, EyeOff, Grid3X3, MapPin, X } from 'lucide-react';
 import { SceneRoot } from './components/SceneRoot';
 import { BUILDINGS, BuildingSpec, CAMERA_PRESETS, CameraPreset } from './data/campusLayout';
 
@@ -7,6 +7,7 @@ export function App() {
   const [activePreset, setActivePreset] = useState<CameraPreset | null>(CAMERA_PRESETS[0]);
   const [selectedBuilding, setSelectedBuilding] = useState<BuildingSpec | null>(null);
   const [showLabels, setShowLabels] = useState(true);
+  const [showGrid, setShowGrid] = useState(false);
 
   return (
     <div className="relative w-full h-full bg-slate-950 overflow-hidden">
@@ -14,6 +15,7 @@ export function App() {
         activePreset={activePreset}
         selectedBuilding={selectedBuilding}
         showLabels={showLabels}
+        showGrid={showGrid}
         onSelectBuilding={(b) => {
           setSelectedBuilding(b);
           if (b) setActivePreset(null);
@@ -30,7 +32,7 @@ export function App() {
               武汉外国语学校 · 3D 数字校园
             </h1>
             <p className="text-[11px] text-slate-400">
-              Wuhan Foreign Languages School · Phase 1 Massing
+              Wuhan Foreign Languages School · Phase 2 Plazas & Lakefront
             </p>
           </div>
         </div>
@@ -38,6 +40,13 @@ export function App() {
 
       {/* Top-Right Controls */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <button
+          onClick={() => setShowGrid((v) => !v)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/70 backdrop-blur-md shadow-lg transition cursor-pointer"
+        >
+          <Grid3X3 className={`w-3.5 h-3.5 ${showGrid ? 'text-sky-400' : 'text-slate-400'}`} />
+          <span>{showGrid ? '隐藏网格' : '测量网格'}</span>
+        </button>
         <button
           onClick={() => setShowLabels((v) => !v)}
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/70 backdrop-blur-md shadow-lg transition cursor-pointer"

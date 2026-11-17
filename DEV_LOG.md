@@ -44,3 +44,22 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Clicking any building opens its Chinese/English info card and smoothly flies the camera to focus on it.
   - [ ] Bottom preset buttons smoothly transition between `全景鸟瞰`, `中心花坛`, `初中部`, `小学部`, `小操场`, `主体育场`, and `西北门`.
 
+---
+
+## Phase 2 — PBR Material Library, Procedural Textures & Terrain / Plazas / Lakefront
+- **Status**: Completed
+- **Git Tag**: `phase-2` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-2))
+- **Working Steps**:
+  1. Built `src/materials/proceduralTextures.ts` with cached HTML5 Canvas PBR generators for stone pavers, terracotta brick walkways, natural campus grass, asphalt, animated water normal maps, and vertical gate plaques (`武汉外国语学校` / `武汉实验外国语学校`).
+  2. Built `src/components/CampusGround.tsx` modeling `中心花坛`, `扇形广场` (4 terraced grass arcs + 5 brick rings + 6 radial spokes), Main Entrance Plaza & fountain parterre, `寻真园 · 种植区`, campus avenues, `太子湖北路`, `东风大道` + elevated viaduct, `西北门` gatehouse, and `北太子湖` with animated water & lotus leaf clusters (`荷叶群`).
+  3. Integrated `CampusGround` into `SceneRoot.tsx` and added a toggleable `测量网格` (Measurement Grid) button in `App.tsx`.
+- **How to Access Phase 2**:
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-2`
+  - **Local**: `git checkout phase-2 && npm install && npm run dev`
+- **Highlight**: Full ground-plane realism—radial `扇形广场`, animated `北太子湖` water with lotus clusters, and detailed `西北门` entrance gatehouse—while preserving all Phase 1 camera & inspection features.
+- **Validation Checklist**:
+  - [ ] Switch to `中心花坛 · 扇形广场` preset and verify concentric grass terraces and 6 radial red-brick walkways.
+  - [ ] Switch to `西北门入口` preset and verify the stone pillars, vertical `武汉外国语学校` / `武汉实验外国语学校` plaques, barrier arm, and crosswalk.
+  - [ ] Orbit NW to `北太子湖` and verify animated water ripples, lakeside brick trail, and circular lotus leaf clusters.
+
+

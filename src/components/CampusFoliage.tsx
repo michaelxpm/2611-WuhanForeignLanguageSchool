@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from 'react';
+import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { TreeItem } from '../data/editableDefaults';
 
@@ -7,6 +8,7 @@ interface CampusFoliageProps {
   editMode: boolean;
   selectedTreeId: string | null;
   onSelectTree: (tree: TreeItem) => void;
+  onStartDrag: (kind: 'building' | 'road' | 'tree', id: string, e: ThreeEvent<PointerEvent>) => void;
 }
 
 export function CampusFoliage({
@@ -14,6 +16,7 @@ export function CampusFoliage({
   editMode,
   selectedTreeId,
   onSelectTree,
+  onStartDrag,
 }: CampusFoliageProps) {
   const trunkRef = useRef<THREE.InstancedMesh>(null);
   const canopy1Ref = useRef<THREE.InstancedMesh>(null);
@@ -77,11 +80,14 @@ export function CampusFoliage({
         args={[undefined, undefined, trees.length]}
         castShadow
         receiveShadow
-        onClick={(e) => {
+        onPointerDown={(e) => {
           if (!editMode || e.instanceId === undefined) return;
           e.stopPropagation();
           const t = trees[e.instanceId];
-          if (t) onSelectTree(t);
+          if (t) {
+            onSelectTree(t);
+            onStartDrag('tree', t.id, e);
+          }
         }}
       >
         <icosahedronGeometry args={[2.35, 1]} />

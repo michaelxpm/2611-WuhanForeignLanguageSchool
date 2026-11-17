@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { ThreeEvent, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { pxPos, pxToWorld } from '../data/campusLayout';
+import { BuildingSpec, pxPos, pxToWorld } from '../data/campusLayout';
 import { ROAD_EDGES, RoadNode } from '../data/editableDefaults';
 import {
   getAsphaltTexture,
@@ -13,10 +13,13 @@ import {
 } from '../materials/proceduralTextures';
 
 interface CampusGroundProps {
+  westGate: BuildingSpec;
   roadNodes: RoadNode[];
   editMode: boolean;
   selectedRoadNodeId: string | null;
+  onSelectBuilding: (spec: BuildingSpec) => void;
   onSelectRoadNode: (node: RoadNode) => void;
+  onStartDrag: (kind: 'building' | 'road' | 'tree', id: string, e: ThreeEvent<PointerEvent>) => void;
 }
 
 const LOTUS_CLUSTERS: { px: number; py: number; radius: number }[] = [
@@ -53,10 +56,13 @@ function RoadSegment({ from, to, width, y = 0.08, color = '#d6cfc4', map }: Road
 }
 
 export function CampusGround({
+  westGate,
   roadNodes,
   editMode,
   selectedRoadNodeId,
+  onSelectBuilding,
   onSelectRoadNode,
+  onStartDrag,
 }: CampusGroundProps) {
   const nodeMap = useMemo(() => {
     const m = new Map<string, RoadNode>();
@@ -321,9 +327,10 @@ export function CampusGround({
               <mesh
                 key={node.id}
                 position={[node.x, 1.2, node.z]}
-                onClick={(e) => {
+                onPointerDown={(e) => {
                   e.stopPropagation();
                   onSelectRoadNode(node);
+                  onStartDrag('road', node.id, e);
                 }}
               >
                 <sphereGeometry args={[isSel ? 2.2 : 1.5, 16, 16]} />
@@ -363,8 +370,21 @@ export function CampusGround({
         </group>
       </group>
 
-      {/* ==================== 西北门 · 校园主入口 (px=195, py=544) ==================== */}
-      <group position={pxPos(195, 544, 0)}>
+      {/* ==================== 西北门 · 校园主入口 (Movable as a whole!) ==================== */}
+      <group
+        position={westGate.position}
+        rotation={[0, westGate.rotationY, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelectBuilding(westGate);
+        }}
+        onPointerDown={(e) => {
+          if (!editMode) return;
+          e.stopPropagation();
+          onSelectBuilding(westGate);
+          onStartDrag('building', westGate.id, e);
+        }}
+      >
         <mesh position={[0, 0.06, 0]} receiveShadow>
           <boxGeometry args={[20, 0.05, 18]} />
           <meshStandardMaterial map={asphaltTex} color="#434954" roughness={0.85} />

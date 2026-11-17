@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BuildingSpec, pxPos } from '../../data/campusLayout';
 import { getFacadeWindowTexture, getFlagWallTexture } from '../../materials/proceduralTextures';
@@ -6,14 +7,28 @@ import { CourtyardRing, WingBlock } from './ArchitecturalKit';
 
 interface NorthZoneBuildingsProps {
   buildings: BuildingSpec[];
+  editMode: boolean;
   onSelect: (spec: BuildingSpec) => void;
+  onStartDrag: (kind: 'building' | 'road' | 'tree', id: string, e: ThreeEvent<PointerEvent>) => void;
 }
 
 function findSpec(buildings: BuildingSpec[], id: string): BuildingSpec {
   return buildings.find((b) => b.id === id)!;
 }
 
-export function NorthZoneBuildings({ buildings, onSelect }: NorthZoneBuildingsProps) {
+export function NorthZoneBuildings({ buildings, editMode, onSelect, onStartDrag }: NorthZoneBuildingsProps) {
+  const bindEvents = (spec: BuildingSpec) => ({
+    onClick: (e: ThreeEvent<MouseEvent>) => {
+      e.stopPropagation();
+      onSelect(spec);
+    },
+    onPointerDown: (e: ThreeEvent<PointerEvent>) => {
+      if (!editMode) return;
+      e.stopPropagation();
+      onSelect(spec);
+      onStartDrag('building', spec.id, e);
+    },
+  });
   const middleCanteen = findSpec(buildings, 'middle-canteen');
   const zhuyuan = findSpec(buildings, 'zhuyuan');
   const meiyuan = findSpec(buildings, 'meiyuan');
@@ -65,10 +80,7 @@ export function NorthZoneBuildings({ buildings, onSelect }: NorthZoneBuildingsPr
       <group
         position={middleCanteen.position}
         rotation={[0, middleCanteen.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(middleCanteen);
-        }}
+        {...bindEvents(middleCanteen)}
       >
         <mesh geometry={crescentGeo} castShadow receiveShadow>
           <meshStandardMaterial map={crescentTex} roughness={0.62} metalness={0.08} />
@@ -96,10 +108,7 @@ export function NorthZoneBuildings({ buildings, onSelect }: NorthZoneBuildingsPr
       <group
         position={zhuyuan.position}
         rotation={[0, zhuyuan.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(zhuyuan);
-        }}
+        {...bindEvents(zhuyuan)}
       >
         <CourtyardRing
           width={30}
@@ -116,10 +125,7 @@ export function NorthZoneBuildings({ buildings, onSelect }: NorthZoneBuildingsPr
       <group
         position={meiyuan.position}
         rotation={[0, meiyuan.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(meiyuan);
-        }}
+        {...bindEvents(meiyuan)}
       >
         <CourtyardRing
           width={30}
@@ -137,10 +143,7 @@ export function NorthZoneBuildings({ buildings, onSelect }: NorthZoneBuildingsPr
       <group
         position={elemCanteen.position}
         rotation={[0, elemCanteen.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(elemCanteen);
-        }}
+        {...bindEvents(elemCanteen)}
       >
         <WingBlock
           width={42}
@@ -165,10 +168,7 @@ export function NorthZoneBuildings({ buildings, onSelect }: NorthZoneBuildingsPr
       <group
         position={dormOct.position}
         rotation={[0, dormOct.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(dormOct);
-        }}
+        {...bindEvents(dormOct)}
       >
         {/* Inner octagonal courtyard lawn */}
         <mesh position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -197,10 +197,7 @@ export function NorthZoneBuildings({ buildings, onSelect }: NorthZoneBuildingsPr
       <group
         position={dormNorth.position}
         rotation={[0, dormNorth.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(dormNorth);
-        }}
+        {...bindEvents(dormNorth)}
       >
         <WingBlock
           position={[0, 0, -10]}

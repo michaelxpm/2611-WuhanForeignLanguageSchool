@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BuildingSpec, pxPos } from '../data/campusLayout';
 import {
@@ -11,7 +12,9 @@ import { WingBlock } from './buildings/ArchitecturalKit';
 
 interface AthleticsZoneProps {
   buildings: BuildingSpec[];
+  editMode: boolean;
   onSelect: (spec: BuildingSpec) => void;
+  onStartDrag: (kind: 'building' | 'road' | 'tree', id: string, e: ThreeEvent<PointerEvent>) => void;
 }
 
 function findSpec(buildings: BuildingSpec[], id: string): BuildingSpec {
@@ -51,9 +54,21 @@ function FootballGoal({ position, rotationY = 0 }: { position: [number, number, 
   );
 }
 
-export function AthleticsZone({ buildings, onSelect }: AthleticsZoneProps) {
+export function AthleticsZone({ buildings, editMode, onSelect, onStartDrag }: AthleticsZoneProps) {
   const mainStadium = findSpec(buildings, 'main-stadium');
   const smallTrack = findSpec(buildings, 'small-track');
+  const bindEvents = (spec: BuildingSpec) => ({
+    onClick: (e: ThreeEvent<MouseEvent>) => {
+      e.stopPropagation();
+      onSelect(spec);
+    },
+    onPointerDown: (e: ThreeEvent<PointerEvent>) => {
+      if (!editMode) return;
+      e.stopPropagation();
+      onSelect(spec);
+      onStartDrag('building', spec.id, e);
+    },
+  });
 
   const pitchTex = useMemo(() => getFootballPitchTexture(), []);
   const trackTex = useMemo(() => getStadiumTrackTexture(), []);
@@ -98,10 +113,7 @@ export function AthleticsZone({ buildings, onSelect }: AthleticsZoneProps) {
       <group
         position={mainStadium.position}
         rotation={[0, mainStadium.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(mainStadium);
-        }}
+        {...bindEvents(mainStadium)}
       >
         {/* Red EPDM 400m Track (strictly y = 0.14, centered at [0, 0]) */}
         <mesh geometry={mainTrackGeo} position={[0, 0.14, 0]} receiveShadow>
@@ -220,10 +232,7 @@ export function AthleticsZone({ buildings, onSelect }: AthleticsZoneProps) {
       <group
         position={smallTrack.position}
         rotation={[0, Math.PI / 2 - 0.23, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(smallTrack);
-        }}
+        {...bindEvents(smallTrack)}
       >
         {/* 200m Red EPDM Track (strictly y = 0.14) */}
         <mesh geometry={smallTrackGeo} position={[0, 0.14, 0]} receiveShadow>

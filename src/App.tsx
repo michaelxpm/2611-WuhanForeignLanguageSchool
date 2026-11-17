@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Building2,
+  Check,
   Compass,
   Download,
   Eye,
@@ -12,13 +13,16 @@ import {
   Orbit,
   Pencil,
   Play,
+  Redo2,
   RotateCcw,
   RotateCw,
+  Save,
   Square,
+  Undo2,
   UserRound,
   X,
 } from 'lucide-react';
-import { CameraMode, SceneRoot } from './components/SceneRoot';
+import { CameraMode, DragKind, SceneRoot } from './components/SceneRoot';
 import { BUILDINGS, BuildingSpec, CAMERA_PRESETS, CameraPreset } from './data/campusLayout';
 import {
   DEFAULT_ROAD_NODES,
@@ -27,20 +31,121 @@ import {
   TreeItem,
 } from './data/editableDefaults';
 
+const STORAGE_KEY = 'wfls-campus-layout-v1';
+
+interface LayoutSnapshot {
+  buildings: BuildingSpec[];
+  roadNodes: RoadNode[];
+  trees: TreeItem[];
+}
+
 type EditSelection =
   | { kind: 'building'; id: string }
   | { kind: 'road'; id: string }
   | { kind: 'tree'; id: string }
   | null;
 
+function defaultSnapshot(): LayoutSnapshot {
+  return {
+    buildings: BUILDINGS.map((b) => ({ ...b, position: [...b.position] })),
+    roadNodes: DEFAULT_ROAD_NODES.map((n) => ({ ...n })),
+    trees: generateDefaultTrees(),
+  };
+}
+
+function loadSavedSnapshot(): LayoutSnapshot {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultSnapshot();
+    const parsed = JSON.parse(raw) as Partial<LayoutSnapshot>;
+    const def = defaultSnapshot();
+    return {
+      buildings: parsed.buildings?.length ? parsed.buildings : def.buildings,
+      roadNodes: parsed.roadNodes?.length ? parsed.roadNodes : def.roadNodes,
+      trees: parsed.trees?.length ? parsed.trees : def.trees,
+    };
+  } catch {
+    return defaultSnapshot();
+  }
+}
+
 export function App() {
-  const [buildings, setBuildings] = useState<BuildingSpec[]>(() =>
-    BUILDINGS.map((b) => ({ ...b, position: [...b.position] }))
-  );
-  const [roadNodes, setRoadNodes] = useState<RoadNode[]>(() =>
-    DEFAULT_ROAD_NODES.map((n) => ({ ...n }))
-  );
-  const [trees, setTrees] = useState<TreeItem[]>(() => generateDefaultTrees());
+  const initial = useMemo(() => loadSavedSnapshot(), []);
+  const [buildings, setBuildings] = useState<BuildingSpec[]>(initial.buildings);
+  const [roadNodes, setRoadNodes] = useState<RoadNode[]>(initial.roadNodes);
+  const [trees, setTrees] = useState<TreeItem[]>(initial.trees);
+
+  const [past, setPast] = useState<LayoutSnapshot[]>([]);
+  const [future, setFuture] = useState<LayoutSnapshot[]>([]);
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Keep a ref to latest state for synchronous snapshot capture
+  const latestRef = useRef<LayoutSnapshot>({ buildings, roadNodes, trees });
+  latestRef.current = { buildings, roadNodes, trees };
+
+  const cloneSnap = (s: LayoutSnapshot): LayoutSnapshot => ({
+    buildings: s.buildings.map((b) => ({ ...b, position: [...b.position] })),
+    roadNodes: s.roadNodes.map((n) => ({ ...n })),
+    trees: s.trees.map((t) => ({ ...t })),
+  });
+
+  const pushHistory = useCallback(() => {
+    setPast((p) => [...p.slice(-39), cloneSnap(latestRef.current)]);
+    setFuture([]);
+  }, []);
+
+  const persistNow = useCallback((snap?: LayoutSnapshot) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snap ?? latestRef.current));
+      setJustSaved(true);
+      window.setTimeout(() => setJustSaved(false), 1600);
+    } catch {
+      // Ignore storage quota errors
+    }
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    setPast((prevPast) => {
+      if (prevPast.length === 0) return prevPast;
+      const previous = prevPast[prevPast.length - 1];
+      setFuture((f) => [cloneSnap(latestRef.current), ...f]);
+      setBuildings(previous.buildings);
+      setRoadNodes(previous.roadNodes);
+      setTrees(previous.trees);
+      persistNow(previous);
+      return prevPast.slice(0, -1);
+    });
+  }, [persistNow]);
+
+  const handleRedo = useCallback(() => {
+    setFuture((prevFuture) => {
+      if (prevFuture.length === 0) return prevFuture;
+      const next = prevFuture[0];
+      setPast((p) => [...p, cloneSnap(latestRef.current)]);
+      setBuildings(next.buildings);
+      setRoadNodes(next.roadNodes);
+      setTrees(next.trees);
+      persistNow(next);
+      return prevFuture.slice(1);
+    });
+  }, [persistNow]);
+
+  // Ctrl+Z / Ctrl+Y keyboard shortcuts
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const key = e.key.toLowerCase();
+      if (key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      } else if (key === 'y' || (key === 'z' && e.shiftKey)) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleUndo, handleRedo]);
 
   const [activePreset, setActivePreset] = useState<CameraPreset | null>(CAMERA_PRESETS[0]);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
@@ -86,8 +191,12 @@ export function App() {
     return () => window.clearInterval(timer);
   }, [autoTour]);
 
-  const updateSelectedBuilding = (patch: { x?: number; z?: number; rotDeg?: number }) => {
+  const updateSelectedBuilding = (
+    patch: { x?: number; z?: number; rotDeg?: number },
+    recordHistory = true
+  ) => {
     if (!selectedBuildingId) return;
+    if (recordHistory) pushHistory();
     setBuildings((prev) =>
       prev.map((b) => {
         if (b.id !== selectedBuildingId) return b;
@@ -100,15 +209,20 @@ export function App() {
     );
   };
 
-  const updateSelectedRoadNode = (x: number, z: number) => {
+  const updateSelectedRoadNode = (x: number, z: number, recordHistory = true) => {
     if (!selectedRoadNode) return;
+    if (recordHistory) pushHistory();
     setRoadNodes((prev) =>
       prev.map((n) => (n.id === selectedRoadNode.id ? { ...n, x, z } : n))
     );
   };
 
-  const updateSelectedTree = (patch: { x?: number; z?: number; scale?: number }) => {
+  const updateSelectedTree = (
+    patch: { x?: number; z?: number; scale?: number },
+    recordHistory = true
+  ) => {
     if (!selectedTree) return;
+    if (recordHistory) pushHistory();
     setTrees((prev) =>
       prev.map((t) =>
         t.id === selectedTree.id
@@ -123,15 +237,32 @@ export function App() {
     );
   };
 
+  const handleDragMove = useCallback((kind: DragKind, id: string, x: number, z: number) => {
+    if (kind === 'building') {
+      setBuildings((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, position: [x, b.position[1], z] } : b))
+      );
+    } else if (kind === 'road') {
+      setRoadNodes((prev) => prev.map((n) => (n.id === id ? { ...n, x, z } : n)));
+    } else if (kind === 'tree') {
+      setTrees((prev) => prev.map((t) => (t.id === id ? { ...t, x, z } : t)));
+    }
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    persistNow();
+  }, [persistNow]);
+
   const handleGroundClickInEdit = (x: number, z: number) => {
     if (!editSelection) return;
     if (editSelection.kind === 'building') {
-      updateSelectedBuilding({ x, z });
+      updateSelectedBuilding({ x, z }, true);
     } else if (editSelection.kind === 'road') {
-      updateSelectedRoadNode(x, z);
+      updateSelectedRoadNode(x, z, true);
     } else if (editSelection.kind === 'tree') {
-      updateSelectedTree({ x, z });
+      updateSelectedTree({ x, z }, true);
     }
+    window.setTimeout(() => persistNow(), 50);
   };
 
   const exportLayoutJson = () => {
@@ -150,11 +281,14 @@ export function App() {
   };
 
   const resetAllEdits = () => {
-    setBuildings(BUILDINGS.map((b) => ({ ...b, position: [...b.position] })));
-    setRoadNodes(DEFAULT_ROAD_NODES.map((n) => ({ ...n })));
-    setTrees(generateDefaultTrees());
+    pushHistory();
+    const def = defaultSnapshot();
+    setBuildings(def.buildings);
+    setRoadNodes(def.roadNodes);
+    setTrees(def.trees);
     setEditSelection(null);
     setSelectedBuildingId(null);
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (
@@ -194,6 +328,9 @@ export function App() {
           setEditSelection({ kind: 'tree', id: tree.id });
         }}
         onGroundClickInEdit={handleGroundClickInEdit}
+        onDragStart={pushHistory}
+        onDragMove={handleDragMove}
+        onDragEnd={handleDragEnd}
         onTransitionEnd={() => setActivePreset(null)}
         onYawChange={setYawDeg}
       />
@@ -212,14 +349,13 @@ export function App() {
             武汉外国语学校 · 3D 数字校园
           </h1>
           <p className="text-[11px] text-slate-400">
-            Wuhan Foreign Languages School · Phase 8 Walk & Edit
+            Wuhan Foreign Languages School · Phase 8.5 Physics & Drag Edit
           </p>
         </div>
       </div>
 
       {/* Top-Right Controls */}
       <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center justify-end gap-2 max-w-[68vw]">
-        {/* Camera Mode Switcher: Orbit / First-Person / Girl Walk */}
         <div className="flex items-center bg-slate-900/80 backdrop-blur-md border border-slate-700/70 rounded-xl p-1 shadow-lg">
           <button
             onClick={() => {
@@ -263,7 +399,6 @@ export function App() {
           </button>
         </div>
 
-        {/* Edit Mode Toggle */}
         <button
           onClick={() => {
             setEditMode((v) => !v);
@@ -281,7 +416,6 @@ export function App() {
           <span>{editMode ? '退出编辑' : '编辑模式'}</span>
         </button>
 
-        {/* Guided Auto-Tour */}
         <button
           onClick={() => {
             setEditMode(false);
@@ -297,7 +431,6 @@ export function App() {
           <span className="hidden sm:inline">{autoTour ? '停止导览' : '自动导览'}</span>
         </button>
 
-        {/* Building Directory Toggle */}
         <button
           onClick={() => setShowDirectory((v) => !v)}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border backdrop-blur-md shadow-lg transition cursor-pointer ${
@@ -331,9 +464,32 @@ export function App() {
           <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
             <div className="flex items-center gap-2">
               <Pencil className="w-4 h-4 text-amber-400" />
-              <span className="text-xs font-bold text-amber-300">校园布局编辑模式</span>
+              <span className="text-xs font-bold text-amber-300">拖拽编辑模式</span>
             </div>
             <div className="flex items-center gap-1">
+              <button
+                onClick={handleUndo}
+                disabled={past.length === 0}
+                title="撤销 (Ctrl+Z)"
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-35 text-slate-200 cursor-pointer"
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={handleRedo}
+                disabled={future.length === 0}
+                title="重做 (Ctrl+Y)"
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-35 text-slate-200 cursor-pointer"
+              >
+                <Redo2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => persistNow()}
+                title="永久保存到浏览器"
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 cursor-pointer"
+              >
+                {justSaved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+              </button>
               <button
                 onClick={exportLayoutJson}
                 title="导出 JSON 布局"
@@ -343,7 +499,7 @@ export function App() {
               </button>
               <button
                 onClick={resetAllEdits}
-                title="重置默认位置"
+                title="恢复默认位置"
                 className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-400 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -353,19 +509,24 @@ export function App() {
 
           {!editSelection ? (
             <p className="text-xs text-slate-300 leading-relaxed">
-              点击场景中的任意 <span className="text-amber-300 font-semibold">建筑</span>、
+              直接<span className="text-amber-300 font-semibold">按住并拖动</span>场景中的任意{' '}
+              <span className="text-amber-300 font-semibold">建筑（含校门）</span>、
               <span className="text-cyan-300 font-semibold">青色道路节点</span> 或{' '}
-              <span className="text-emerald-300 font-semibold">树木</span> 开始调整其位置或角度。
+              <span className="text-emerald-300 font-semibold">树木</span> 即可移动；支持{' '}
+              <kbd className="px-1 py-0.5 rounded bg-slate-800 text-[10px]">Ctrl+Z</kbd> 撤销 /{' '}
+              <kbd className="px-1 py-0.5 rounded bg-slate-800 text-[10px]">Ctrl+Y</kbd> 重做。
             </p>
           ) : (
             <div className="space-y-3">
-              <div className="text-xs font-semibold text-white">
-                {editSelection.kind === 'building' && selectedBuilding?.nameZh}
-                {editSelection.kind === 'road' && `道路节点: ${selectedRoadNode?.label}`}
-                {editSelection.kind === 'tree' && `树木 (${selectedTree?.id})`}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-white">
+                  {editSelection.kind === 'building' && selectedBuilding?.nameZh}
+                  {editSelection.kind === 'road' && `道路节点: ${selectedRoadNode?.label}`}
+                  {editSelection.kind === 'tree' && `树木 (${selectedTree?.id})`}
+                </span>
+                {justSaved && <span className="text-[10px] text-emerald-400">已永久保存</span>}
               </div>
 
-              {/* X / Z Coordinate Inputs */}
               {(() => {
                 const curX =
                   editSelection.kind === 'building'
@@ -383,6 +544,7 @@ export function App() {
                   if (editSelection.kind === 'building') updateSelectedBuilding({ x: nx, z: nz });
                   if (editSelection.kind === 'road') updateSelectedRoadNode(nx, nz);
                   if (editSelection.kind === 'tree') updateSelectedTree({ x: nx, z: nz });
+                  window.setTimeout(() => persistNow(), 50);
                 };
 
                 return (
@@ -421,7 +583,6 @@ export function App() {
                 );
               })()}
 
-              {/* Rotation for Building */}
               {editSelection.kind === 'building' && selectedBuilding && (
                 <label className="block text-xs">
                   <span className="text-slate-400 flex justify-between">
@@ -436,13 +597,15 @@ export function App() {
                     max={180}
                     step={1}
                     value={Math.round((selectedBuilding.rotationY * 180) / Math.PI)}
-                    onChange={(e) => updateSelectedBuilding({ rotDeg: parseFloat(e.target.value) })}
+                    onChange={(e) => {
+                      updateSelectedBuilding({ rotDeg: parseFloat(e.target.value) });
+                      window.setTimeout(() => persistNow(), 50);
+                    }}
                     className="w-full accent-amber-400 cursor-pointer"
                   />
                 </label>
               )}
 
-              {/* Scale for Tree */}
               {editSelection.kind === 'tree' && selectedTree && (
                 <label className="block text-xs">
                   <span className="text-slate-400 flex justify-between">
@@ -455,7 +618,10 @@ export function App() {
                     max={2.0}
                     step={0.05}
                     value={selectedTree.scale}
-                    onChange={(e) => updateSelectedTree({ scale: parseFloat(e.target.value) })}
+                    onChange={(e) => {
+                      updateSelectedTree({ scale: parseFloat(e.target.value) });
+                      window.setTimeout(() => persistNow(), 50);
+                    }}
                     className="w-full accent-emerald-400 cursor-pointer"
                   />
                 </label>
@@ -543,7 +709,7 @@ export function App() {
         ))}
       </div>
 
-      {/* Building Inspector Card (hidden in Edit Mode since Edit Inspector is shown) */}
+      {/* Building Inspector Card */}
       {selectedBuilding && !editMode && (
         <div className="absolute bottom-20 left-4 z-10 w-80 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-4 shadow-2xl">
           <div className="flex items-start justify-between gap-2">

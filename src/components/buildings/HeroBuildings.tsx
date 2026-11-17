@@ -1,17 +1,32 @@
+import { ThreeEvent } from '@react-three/fiber';
 import { BuildingSpec } from '../../data/campusLayout';
 import { CourtyardRing, RotundaDrum, WingBlock } from './ArchitecturalKit';
 
 interface HeroBuildingsProps {
   buildings: BuildingSpec[];
   selectedId: string | null;
+  editMode: boolean;
   onSelect: (spec: BuildingSpec) => void;
+  onStartDrag: (kind: 'building' | 'road' | 'tree', id: string, e: ThreeEvent<PointerEvent>) => void;
 }
 
 function findSpec(buildings: BuildingSpec[], id: string): BuildingSpec {
   return buildings.find((b) => b.id === id)!;
 }
 
-export function HeroBuildings({ buildings, onSelect }: HeroBuildingsProps) {
+export function HeroBuildings({ buildings, editMode, onSelect, onStartDrag }: HeroBuildingsProps) {
+  const bindEvents = (spec: BuildingSpec) => ({
+    onClick: (e: ThreeEvent<MouseEvent>) => {
+      e.stopPropagation();
+      onSelect(spec);
+    },
+    onPointerDown: (e: ThreeEvent<PointerEvent>) => {
+      if (!editMode) return;
+      e.stopPropagation();
+      onSelect(spec);
+      onStartDrag('building', spec.id, e);
+    },
+  });
   const middleMain = findSpec(buildings, 'middle-school-main');
   const middleAnnex = findSpec(buildings, 'middle-school-annex');
   const elemTeaching = findSpec(buildings, 'elementary-teaching');
@@ -26,10 +41,7 @@ export function HeroBuildings({ buildings, onSelect }: HeroBuildingsProps) {
       <group
         position={middleMain.position}
         rotation={[0, middleMain.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(middleMain);
-        }}
+        {...bindEvents(middleMain)}
       >
         <WingBlock
           width={110}
@@ -73,10 +85,7 @@ export function HeroBuildings({ buildings, onSelect }: HeroBuildingsProps) {
       <group
         position={middleAnnex.position}
         rotation={[0, middleAnnex.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(middleAnnex);
-        }}
+        {...bindEvents(middleAnnex)}
       >
         <WingBlock
           width={24}
@@ -98,10 +107,7 @@ export function HeroBuildings({ buildings, onSelect }: HeroBuildingsProps) {
       <group
         position={elemTeaching.position}
         rotation={[0, elemTeaching.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(elemTeaching);
-        }}
+        {...bindEvents(elemTeaching)}
       >
         <CourtyardRing
           width={46}
@@ -157,10 +163,7 @@ export function HeroBuildings({ buildings, onSelect }: HeroBuildingsProps) {
       <group
         position={auditorium.position}
         rotation={[0, auditorium.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(auditorium);
-        }}
+        {...bindEvents(auditorium)}
       >
         <WingBlock
           position={[-12, 0, -4]}
@@ -198,10 +201,7 @@ export function HeroBuildings({ buildings, onSelect }: HeroBuildingsProps) {
       <group
         position={triAtrium.position}
         rotation={[0, triAtrium.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(triAtrium);
-        }}
+        {...bindEvents(triAtrium)}
       >
         {/* East Wing (N-S) */}
         <WingBlock
@@ -257,10 +257,7 @@ export function HeroBuildings({ buildings, onSelect }: HeroBuildingsProps) {
       <group
         position={guiyuan.position}
         rotation={[0, guiyuan.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(guiyuan);
-        }}
+        {...bindEvents(guiyuan)}
       >
         <CourtyardRing
           width={34}
@@ -276,10 +273,7 @@ export function HeroBuildings({ buildings, onSelect }: HeroBuildingsProps) {
       <group
         position={songyuan.position}
         rotation={[0, songyuan.rotationY, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(songyuan);
-        }}
+        {...bindEvents(songyuan)}
       >
         <CourtyardRing
           width={34}

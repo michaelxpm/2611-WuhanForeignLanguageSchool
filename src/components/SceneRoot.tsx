@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Grid, Html, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -15,12 +15,21 @@ import { HeroBuildings } from './buildings/HeroBuildings';
 import { NorthZoneBuildings } from './buildings/NorthZoneBuildings';
 
 export type CameraMode = 'orbit' | 'walk' | 'girl';
+export type DragKind = 'building' | 'road' | 'tree';
+
+interface DragInfo {
+  kind: DragKind;
+  id: string;
+  offsetX: number;
+  offsetZ: number;
+}
 
 interface CameraRigProps {
   activePreset: CameraPreset | null;
   selectedBuilding: BuildingSpec | null;
   autoOrbit: boolean;
   editMode: boolean;
+  controlsEnabled: boolean;
   onTransitionEnd: () => void;
   onYawChange?: (yawDeg: number) => void;
 }
@@ -30,6 +39,7 @@ function CameraRig({
   selectedBuilding,
   autoOrbit,
   editMode,
+  controlsEnabled,
   onTransitionEnd,
   onYawChange,
 }: CameraRigProps) {
@@ -89,6 +99,7 @@ function CameraRig({
     <OrbitControls
       ref={controlsRef}
       makeDefault
+      enabled={controlsEnabled}
       enableDamping
       dampingFactor={0.07}
       autoRotate={autoOrbit}
@@ -145,6 +156,9 @@ interface SceneRootProps {
   onSelectRoadNode: (node: RoadNode) => void;
   onSelectTree: (tree: TreeItem) => void;
   onGroundClickInEdit: (x: number, z: number) => void;
+  onDragStart: () => void;
+  onDragMove: (kind: DragKind, id: string, x: number, z: number) => void;
+  onDragEnd: () => void;
   onTransitionEnd: () => void;
   onYawChange?: (yawDeg: number) => void;
 }
@@ -167,9 +181,61 @@ export function SceneRoot({
   onSelectRoadNode,
   onSelectTree,
   onGroundClickInEdit,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
   onTransitionEnd,
   onYawChange,
 }: SceneRootProps) {
+  const [dragInfo, setDragInfo] = useState<DragInfo | null>(null);
+  const westGate = buildings.find((b) => b.id === 'west-gate')!;
+
+  const handleStartDrag = useCallback(
+    (kind: DragKind, id: string, e: ThreeEvent<PointerEvent>) => {
+      if (!editMode) return;
+      let curX = 0;
+      let curZ = 0;
+      if (kind === 'building') {
+        const b = buildings.find((item) => item.id === id);
+        if (b) {
+          curX = b.position[0];
+          curZ = b.position[2];
+        }
+      } else if (kind === 'road') {
+        const r = roadNodes.find((item) => item.id === id);
+        if (r) {
+          curX = r.x;
+          curZ = r.z;
+        }
+      } else if (kind === 'tree') {
+        const t = trees.find((item) => item.id === id);
+        if (t) {
+          curX = t.x;
+          curZ = t.z;
+        }
+      }
+
+      onDragStart();
+      setDragInfo({
+        kind,
+        id,
+        offsetX: curX - e.point.x,
+        offsetZ: curZ - e.point.z,
+      });
+    },
+    [editMode, buildings, roadNodes, trees, onDragStart]
+  );
+
+  useEffect(() => {
+    if (!dragInfo) return;
+    const stop = () => {
+      setDragInfo(null);
+      onDragEnd();
+    };
+    window.addEventListener('pointerup', stop);
+    return () => window.removeEventListener('pointerup', stop);
+  }, [dragInfo, onDragEnd]);
+
   const handleGroundClick = (e: ThreeEvent<MouseEvent>) => {
     if (editMode && clickToMove) {
       e.stopPropagation();
@@ -188,13 +254,33 @@ export function SceneRoot({
     >
       <EnvironmentEffects />
 
-      {/* Ground + Editable Road Network */}
+      {/* Invisible drag-capture plane active only while dragging an element in Edit Mode */}
+      {dragInfo && (
+        <mesh
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, 0.25, 0]}
+          onPointerMove={(e) => {
+            e.stopPropagation();
+            const nx = Math.round((e.point.x + dragInfo.offsetX) * 10) / 10;
+            const nz = Math.round((e.point.z + dragInfo.offsetZ) * 10) / 10;
+            onDragMove(dragInfo.kind, dragInfo.id, nx, nz);
+          }}
+        >
+          <planeGeometry args={[2000, 2000]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+      )}
+
+      {/* Ground + Editable Road Network + Movable West Gate */}
       <group onClick={handleGroundClick}>
         <CampusGround
+          westGate={westGate}
           roadNodes={roadNodes}
           editMode={editMode}
           selectedRoadNodeId={selectedRoadNodeId}
+          onSelectBuilding={(b) => onSelectBuilding(b)}
           onSelectRoadNode={onSelectRoadNode}
+          onStartDrag={handleStartDrag}
         />
       </group>
 
@@ -216,17 +302,30 @@ export function SceneRoot({
       <HeroBuildings
         buildings={buildings}
         selectedId={selectedBuilding?.id ?? null}
+        editMode={editMode}
         onSelect={(b) => onSelectBuilding(b)}
+        onStartDrag={handleStartDrag}
       />
-      <NorthZoneBuildings buildings={buildings} onSelect={(b) => onSelectBuilding(b)} />
-      <AthleticsZone buildings={buildings} onSelect={(b) => onSelectBuilding(b)} />
+      <NorthZoneBuildings
+        buildings={buildings}
+        editMode={editMode}
+        onSelect={(b) => onSelectBuilding(b)}
+        onStartDrag={handleStartDrag}
+      />
+      <AthleticsZone
+        buildings={buildings}
+        editMode={editMode}
+        onSelect={(b) => onSelectBuilding(b)}
+        onStartDrag={handleStartDrag}
+      />
 
-      {/* Instanced Foliage (editable in Edit Mode) */}
+      {/* Instanced Foliage (draggable in Edit Mode) */}
       <CampusFoliage
         trees={trees}
         editMode={editMode}
         selectedTreeId={selectedTreeId}
         onSelectTree={onSelectTree}
+        onStartDrag={handleStartDrag}
       />
 
       {/* Selected Building Highlight Ring in Edit Mode */}
@@ -276,6 +375,7 @@ export function SceneRoot({
           selectedBuilding={selectedBuilding}
           autoOrbit={autoOrbit}
           editMode={editMode}
+          controlsEnabled={!dragInfo}
           onTransitionEnd={onTransitionEnd}
           onYawChange={onYawChange}
         />

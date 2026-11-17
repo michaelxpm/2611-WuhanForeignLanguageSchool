@@ -193,6 +193,26 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Click `编辑模式` and click any building, cyan road node, or tree to adjust X/Z/Rotation/Scale or use `点击地面移动`.
   - [ ] Inspect `东侧三角中庭楼` and the denser multi-lobe campus tree groves.
 
+---
+
+## Phase 8.5 — Biomechanical Walking Physics, WFLS Uniform Appearance & Drag-to-Edit Persistence
+- **Status**: Completed
+- **Git Tag**: `phase-8.5` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-8.5))
+- **Working Steps**:
+  1. Upgraded `src/components/GirlWalker.tsx` with real-world biomechanical gait physics (velocity momentum & friction, stride-locked phase, 2-segment thigh+knee+foot kinematics, double-frequency vertical CoM bob, pelvis/torso counter-rotation, forward lean, ponytail bounce) and authentic WFLS student appearance (navy parka with bright yellow zipper & hood trim, white school crest, white track pants with navy stripe, white hair clip, and purple/white rolling schoolbag trolley).
+  2. Enabled direct **3D Drag-to-Move** (`onPointerDown` + ground-plane drag capture) in `SceneRoot.tsx`, `HeroBuildings.tsx`, `NorthZoneBuildings.tsx`, `AthleticsZone.tsx`, `CampusGround.tsx`, and `CampusFoliage.tsx`—including moving the entire `西北门` main entrance as a cohesive unit.
+  3. Added `Ctrl + Z` Undo, `Ctrl + Y` Redo, permanent `localStorage` auto-save (`wfls-campus-layout-v1`) + manual Save button, and `恢复默认位置` (Reset to Default) in `App.tsx`.
+  4. Added `*.mp4` to `.gitignore` so local reference videos are not pushed to GitHub.
+- **How to Access Phase 8.5**:
+  - **Live Website**: `https://michaelxpm.github.io/2611-WuhanForeignLanguageSchool/`
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-8.5`
+  - **Local**: `git checkout phase-8.5 && npm.cmd install && npm.cmd run dev` (or `git checkout main`)
+- **Highlight**: Realistic physics-driven student walking with authentic WFLS uniform + rolling schoolbag, direct 3D drag editing, full Undo/Redo, and permanent browser persistence.
+- **Validation Checklist**:
+  - [ ] Switch to `女生漫步` and walk/sprint (`WASD` + `Shift`) to verify knee bend, torso counter-rotation, coat/ponytail bounce, and rolling schoolbag.
+  - [ ] Enter `编辑模式`, drag `西北门` or any building/road node/tree directly on the 3D ground, press `Ctrl+Z` / `Ctrl+Y` to undo/redo, and refresh the browser to confirm permanent `localStorage` persistence.
+
+
 
 
 

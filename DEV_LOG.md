@@ -135,6 +135,25 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Zoom in closely on `小操场`, `小足球场`, and the white road behind `梅苑`/`竹苑`: verify zero flickering/disappearing.
   - [ ] Click `校园主入口 (校门)` preset: verify the gate sits at the SW corner and the main white avenue runs between `主体育场` and the 8 courts toward `中心花坛` and its triangular lawn.
 
+---
+
+## Phase 6 — Photometric Lighting, Post-Processing & Interactive Walk Mode
+- **Status**: Completed
+- **Git Tag**: `phase-6` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-6))
+- **Working Steps**:
+  1. Built `src/components/EnvironmentEffects.tsx` with 4 Time-of-Day presets (`清晨`, `正午`, `黄昏`, `夜景`), procedural `<Sky>`, self-contained `<Environment>` IBL `<Lightformer>`s (zero external HDR fetch), `4096×4096` PCFSoftShadowMap sun light, instanced glowing campus streetlights, and `<EffectComposer>` (`Bloom` + `ACESFilmic` ToneMapping).
+  2. Built `src/components/FirstPersonControls.tsx` for ground-level human-scale exploration (`y = 1.75 m`, WASD/Arrow keys, Shift sprint, drag-to-look).
+  3. Updated `SceneRoot.tsx` and `App.tsx` with Time-of-Day switcher, `航拍 / 第一人称漫步` mode toggle, real-time rotating Compass Rose, and expandable `建筑导览` directory drawer.
+- **How to Access Phase 6**:
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-6`
+  - **Local**: `git checkout phase-6 && npm.cmd install && npm.cmd run dev`
+- **Highlight**: Full atmospheric time-of-day rendering (daylight, golden hour, night with glowing streetlights), ACES Filmic post-processing, First-Person Campus Walk, and complete building directory navigation.
+- **Validation Checklist**:
+  - [ ] Toggle `清晨 / 正午 / 黄昏 / 夜景` and verify dynamic sun angles, sky colors, and glowing avenue streetlights at night.
+  - [ ] Click `第一人称漫步`, use `WASD` + `Shift` + mouse drag to walk through `西北门` and `扇形广场`.
+  - [ ] Open `建筑导览` and jump to any of the 17 campus landmarks.
+
+
 
 
 

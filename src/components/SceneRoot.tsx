@@ -7,6 +7,8 @@ import { BUILDINGS, BuildingSpec, CameraPreset } from '../data/campusLayout';
 import { AthleticsZone } from './AthleticsZone';
 import { CampusFoliage } from './CampusFoliage';
 import { CampusGround } from './CampusGround';
+import { EnvironmentEffects, TimeOfDay } from './EnvironmentEffects';
+import { FirstPersonControls } from './FirstPersonControls';
 import { HeroBuildings } from './buildings/HeroBuildings';
 import { NorthZoneBuildings } from './buildings/NorthZoneBuildings';
 
@@ -14,9 +16,10 @@ interface CameraRigProps {
   activePreset: CameraPreset | null;
   selectedBuilding: BuildingSpec | null;
   onTransitionEnd: () => void;
+  onYawChange?: (yawDeg: number) => void;
 }
 
-function CameraRig({ activePreset, selectedBuilding, onTransitionEnd }: CameraRigProps) {
+function CameraRig({ activePreset, selectedBuilding, onTransitionEnd, onYawChange }: CameraRigProps) {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { camera } = useThree();
   const desiredPos = useRef<THREE.Vector3 | null>(null);
@@ -57,11 +60,16 @@ function CameraRig({ activePreset, selectedBuilding, onTransitionEnd }: CameraRi
       }
     }
 
-    // Prevent camera from going below ground
     if (camera.position.y < 1.5) {
       camera.position.y = 1.5;
     }
     controls.update();
+
+    if (onYawChange) {
+      const dir = new THREE.Vector3();
+      camera.getWorldDirection(dir);
+      onYawChange(THREE.MathUtils.radToDeg(Math.atan2(-dir.x, -dir.z)));
+    }
   });
 
   return (
@@ -109,8 +117,11 @@ interface SceneRootProps {
   selectedBuilding: BuildingSpec | null;
   showLabels: boolean;
   showGrid: boolean;
+  timeOfDay: TimeOfDay;
+  cameraMode: 'orbit' | 'walk';
   onSelectBuilding: (spec: BuildingSpec | null) => void;
   onTransitionEnd: () => void;
+  onYawChange?: (yawDeg: number) => void;
 }
 
 export function SceneRoot({
@@ -118,35 +129,20 @@ export function SceneRoot({
   selectedBuilding,
   showLabels,
   showGrid,
+  timeOfDay,
+  cameraMode,
   onSelectBuilding,
   onTransitionEnd,
+  onYawChange,
 }: SceneRootProps) {
   return (
     <Canvas
       shadows
       dpr={[1, 2]}
-      camera={{ position: [-210, 210, 260], fov: 45, near: 1, far: 2500 }}
+      camera={{ position: [-120, 260, 240], fov: 45, near: 0.5, far: 2800 }}
       onPointerMissed={() => onSelectBuilding(null)}
     >
-      <color attach="background" args={['#dbeafe']} />
-      <fog attach="fog" args={['#dbeafe', 450, 1200]} />
-
-      {/* Base Lighting */}
-      <ambientLight intensity={0.45} />
-      <hemisphereLight args={['#e0f2fe', '#64748b', 0.6]} />
-      <directionalLight
-        position={[180, 260, 160]}
-        intensity={2.2}
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-380}
-        shadow-camera-right={220}
-        shadow-camera-top={320}
-        shadow-camera-bottom={-220}
-        shadow-camera-near={10}
-        shadow-camera-far={900}
-        shadow-bias={-0.0005}
-      />
+      <EnvironmentEffects timeOfDay={timeOfDay} />
 
       {/* Campus Ground, Plazas, Roads, Gatehouse & 北太子湖 */}
       <CampusGround />
@@ -201,11 +197,16 @@ export function SceneRoot({
         ))}
 
       <CompassMarkers />
-      <CameraRig
-        activePreset={activePreset}
-        selectedBuilding={selectedBuilding}
-        onTransitionEnd={onTransitionEnd}
-      />
+      {cameraMode === 'orbit' ? (
+        <CameraRig
+          activePreset={activePreset}
+          selectedBuilding={selectedBuilding}
+          onTransitionEnd={onTransitionEnd}
+          onYawChange={onYawChange}
+        />
+      ) : (
+        <FirstPersonControls enabled={true} onYawChange={onYawChange} />
+      )}
     </Canvas>
   );
 }

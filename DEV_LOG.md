@@ -80,5 +80,23 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Click `小学部 · 报告厅` preset: verify teal pitched roofs with 4 corner turret peaks, inner courtyard, and terracotta-roofed `报告厅` + drum pavilion.
   - [ ] Inspect `东侧三角中庭楼`, `桂苑`, and `松苑` east of `扇形广场`.
 
+---
+
+## Phase 4 — North Zone Buildings & Flag-Raising Platform (Zone C)
+- **Status**: Completed
+- **Git Tag**: `phase-4` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-4))
+- **Working Steps**:
+  1. Added `getFlagWallTexture()` in `src/materials/proceduralTextures.ts` rendering the cream stone cladding, school emblem medallion (`WFLS`), and engraved motto (`从这里走向世界和未来` / `An Access to the World and the Future`).
+  2. Built `src/components/buildings/NorthZoneBuildings.tsx` modeling `初中部食堂` (crescent arc wing + north annex), `梅苑` & `竹苑` (courtyard dormitories with arched top-floor windows), `小学部食堂` (wide-span hall with dual clerestory skylight monitors), `初中部宿舍 · 八角楼` (octagonal-ring courtyard), `初中部宿舍 · 北翼楼` (L-wing with corner turret accents), and `小操场升旗台` (tiered stone stage, gabled motto wall, and 3 silver flagpoles with red flags).
+  3. Integrated `NorthZoneBuildings` into `SceneRoot.tsx`.
+- **How to Access Phase 4**:
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-4`
+  - **Local**: `git checkout phase-4 && npm.cmd install && npm.cmd run dev`
+- **Highlight**: Every residential, dining, and north-campus building is now modeled with its exact geometric silhouette (crescent, octagon, courtyard, clerestory) plus the authentic `小操场升旗台` landmark.
+- **Validation Checklist**:
+  - [ ] Click `小操场 · 升旗台` preset and zoom in on the east side of the track to verify the gabled motto wall (`从这里走向世界和未来`), emblem, and 3 flagpoles.
+  - [ ] Inspect `梅苑` & `竹苑` arched top-floor windows, `初中部食堂` crescent curve, and the NW `八角楼` octagonal courtyard.
+
+
 
 

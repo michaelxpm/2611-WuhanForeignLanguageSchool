@@ -241,3 +241,57 @@ export function getRoofRibTexture(baseHex = '#2f3947'): THREE.CanvasTexture {
   }
   return finalizeTexture(key, canvas, 6, 3, true);
 }
+
+export function getFlagWallTexture(): THREE.CanvasTexture {
+  const key = 'flag-wall-motto';
+  if (textureCache.has(key)) return textureCache.get(key)!;
+
+  const w = 1024;
+  const h = 512;
+  const [canvas, ctx] = makeCanvas(w, h);
+
+  // Cream stone cladding base
+  ctx.fillStyle = '#dfd3be';
+  ctx.fillRect(0, 0, w, h);
+
+  // Subtle stone panel grid
+  ctx.strokeStyle = 'rgba(120, 100, 75, 0.25)';
+  ctx.lineWidth = 2;
+  for (let x = 0; x <= w; x += 64) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= h; y += 64) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+
+  // School emblem medallion near top center
+  ctx.fillStyle = '#c8b89a';
+  ctx.beginPath();
+  ctx.arc(w / 2, 105, 48, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#8b6f47';
+  ctx.lineWidth = 5;
+  ctx.stroke();
+  ctx.fillStyle = '#735a38';
+  ctx.font = 'bold 26px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('WFLS', w / 2, 106);
+
+  // Chinese & English Motto
+  ctx.fillStyle = '#6e5636';
+  ctx.font = 'bold 54px "Microsoft YaHei", serif';
+  ctx.fillText('从这里走向世界和未来', w / 2, 235);
+
+  ctx.fillStyle = '#7c6240';
+  ctx.font = '600 34px Georgia, serif';
+  ctx.fillText('An Access to the World and the Future', w / 2, 310);
+
+  return finalizeTexture(key, canvas, 1, 1, true);
+}

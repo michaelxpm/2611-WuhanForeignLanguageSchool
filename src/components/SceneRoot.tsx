@@ -6,8 +6,9 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { BUILDINGS, BuildingSpec, CameraPreset } from '../data/campusLayout';
 import { CampusGround } from './CampusGround';
 import { HeroBuildings } from './buildings/HeroBuildings';
+import { NorthZoneBuildings } from './buildings/NorthZoneBuildings';
 
-const PHASE3_HERO_IDS = new Set([
+const MODELED_BUILDING_IDS = new Set([
   'middle-school-main',
   'middle-school-annex',
   'elementary-teaching',
@@ -15,6 +16,12 @@ const PHASE3_HERO_IDS = new Set([
   'triangular-atrium',
   'guiyuan',
   'songyuan',
+  'middle-canteen',
+  'zhuyuan',
+  'meiyuan',
+  'elementary-canteen',
+  'dorm-octagonal',
+  'dorm-north-wing',
 ]);
 
 interface CameraRigProps {
@@ -239,12 +246,15 @@ export function SceneRoot({
         onSelect={(b) => onSelectBuilding(b)}
       />
 
-      {/* Remaining Massing Blocks (to be replaced in Phase 4 & 5) */}
+      {/* Phase 4 North Zone Buildings & 升旗台 */}
+      <NorthZoneBuildings onSelect={(b) => onSelectBuilding(b)} />
+
+      {/* Remaining Massing Blocks (Athletics: to be replaced in Phase 5) */}
       {BUILDINGS.filter(
         (b) =>
           b.id !== 'central-roundabout' &&
           b.id !== 'west-gate' &&
-          !PHASE3_HERO_IDS.has(b.id)
+          !MODELED_BUILDING_IDS.has(b.id)
       ).map((b) => (
         <MassingBlock
           key={b.id}
@@ -255,9 +265,9 @@ export function SceneRoot({
         />
       ))}
 
-      {/* Floating 3D Labels for Phase 3 Hero Buildings */}
+      {/* Floating 3D Labels for Modeled Buildings */}
       {showLabels &&
-        BUILDINGS.filter((b) => PHASE3_HERO_IDS.has(b.id)).map((b) => (
+        BUILDINGS.filter((b) => MODELED_BUILDING_IDS.has(b.id)).map((b) => (
           <Html
             key={`label-${b.id}`}
             position={[b.position[0], b.dimensions[1] + 5, b.position[2]]}

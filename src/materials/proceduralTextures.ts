@@ -155,3 +155,89 @@ export function getVerticalPlaqueTexture(text: string): THREE.CanvasTexture {
 
   return finalizeTexture(key, canvas, 1, 1, true);
 }
+
+export function getFacadeWindowTexture(
+  wallHex = '#eef2f6',
+  stories = 4,
+  cols = 12,
+  archedTop = false
+): THREE.CanvasTexture {
+  const key = `facade-${wallHex}-${stories}-${cols}-${archedTop}`;
+  if (textureCache.has(key)) return textureCache.get(key)!;
+
+  const w = 512;
+  const h = 512;
+  const [canvas, ctx] = makeCanvas(w, h);
+
+  ctx.fillStyle = wallHex;
+  ctx.fillRect(0, 0, w, h);
+
+  const storyH = h / stories;
+  const colW = w / cols;
+
+  for (let s = 0; s < stories; s++) {
+    const y0 = s * storyH;
+    // Subtle floor slab shadow line
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.14)';
+    ctx.fillRect(0, y0, w, 4);
+
+    // Spandrel band
+    ctx.fillStyle = 'rgba(203, 213, 225, 0.55)';
+    ctx.fillRect(0, y0 + storyH - 10, w, 10);
+
+    for (let c = 0; c < cols; c++) {
+      const x0 = c * colW;
+      const padX = colW * 0.16;
+      const padTop = storyH * 0.18;
+      const winW = colW - padX * 2;
+      const winH = storyH * 0.6;
+      const wx = x0 + padX;
+      const wy = y0 + padTop;
+
+      // Window recess frame
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(wx - 2, wy - 2, winW + 4, winH + 4);
+
+      // Dark reflective glass gradient
+      const grad = ctx.createLinearGradient(wx, wy, wx, wy + winH);
+      grad.addColorStop(0, '#1e3a5f');
+      grad.addColorStop(0.55, '#0f253d');
+      grad.addColorStop(1, '#1e293b');
+      ctx.fillStyle = grad;
+
+      if (archedTop && s === 0) {
+        ctx.beginPath();
+        ctx.arc(wx + winW / 2, wy + winW / 2, winW / 2, Math.PI, 0);
+        ctx.lineTo(wx + winW, wy + winH);
+        ctx.lineTo(wx, wy + winH);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        ctx.fillRect(wx, wy, winW, winH);
+      }
+
+      // Mullion divider
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(wx + winW / 2 - 1, wy, 2, winH);
+    }
+  }
+
+  return finalizeTexture(key, canvas, 1, 1, true);
+}
+
+export function getRoofRibTexture(baseHex = '#2f3947'): THREE.CanvasTexture {
+  const key = `roof-${baseHex}`;
+  if (textureCache.has(key)) return textureCache.get(key)!;
+
+  const [canvas, ctx] = makeCanvas(256, 256);
+  ctx.fillStyle = baseHex;
+  ctx.fillRect(0, 0, 256, 256);
+
+  for (let x = 0; x < 256; x += 16) {
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.fillRect(x, 0, 2, 256);
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(x + 2, 0, 2, 256);
+  }
+  return finalizeTexture(key, canvas, 6, 3, true);
+}

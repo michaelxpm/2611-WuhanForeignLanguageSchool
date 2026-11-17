@@ -5,6 +5,17 @@ import * as THREE from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { BUILDINGS, BuildingSpec, CameraPreset } from '../data/campusLayout';
 import { CampusGround } from './CampusGround';
+import { HeroBuildings } from './buildings/HeroBuildings';
+
+const PHASE3_HERO_IDS = new Set([
+  'middle-school-main',
+  'middle-school-annex',
+  'elementary-teaching',
+  'auditorium',
+  'triangular-atrium',
+  'guiyuan',
+  'songyuan',
+]);
 
 interface CameraRigProps {
   activePreset: CameraPreset | null;
@@ -222,8 +233,19 @@ export function SceneRoot({
         />
       )}
 
-      {/* Campus Massing Blocks (skip ground-only landmarks now modeled in CampusGround) */}
-      {BUILDINGS.filter((b) => b.id !== 'central-roundabout' && b.id !== 'west-gate').map((b) => (
+      {/* Phase 3 Hero Buildings (Zone A & Zone B) */}
+      <HeroBuildings
+        selectedId={selectedBuilding?.id ?? null}
+        onSelect={(b) => onSelectBuilding(b)}
+      />
+
+      {/* Remaining Massing Blocks (to be replaced in Phase 4 & 5) */}
+      {BUILDINGS.filter(
+        (b) =>
+          b.id !== 'central-roundabout' &&
+          b.id !== 'west-gate' &&
+          !PHASE3_HERO_IDS.has(b.id)
+      ).map((b) => (
         <MassingBlock
           key={b.id}
           spec={b}
@@ -232,6 +254,28 @@ export function SceneRoot({
           onSelect={onSelectBuilding}
         />
       ))}
+
+      {/* Floating 3D Labels for Phase 3 Hero Buildings */}
+      {showLabels &&
+        BUILDINGS.filter((b) => PHASE3_HERO_IDS.has(b.id)).map((b) => (
+          <Html
+            key={`label-${b.id}`}
+            position={[b.position[0], b.dimensions[1] + 5, b.position[2]]}
+            center
+            distanceFactor={260}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div
+              className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap shadow-md border ${
+                selectedBuilding?.id === b.id
+                  ? 'bg-sky-500/95 text-white border-sky-200'
+                  : 'bg-slate-900/80 text-slate-100 border-slate-700/80'
+              }`}
+            >
+              {b.nameZh}
+            </div>
+          </Html>
+        ))}
 
       <CompassMarkers />
       <CameraRig

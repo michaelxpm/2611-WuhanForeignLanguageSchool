@@ -62,4 +62,23 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Switch to `西北门入口` preset and verify the stone pillars, vertical `武汉外国语学校` / `武汉实验外国语学校` plaques, barrier arm, and crosswalk.
   - [ ] Orbit NW to `北太子湖` and verify animated water ripples, lakeside brick trail, and circular lotus leaf clusters.
 
+---
+
+## Phase 3 — Hero Academic & Cultural Buildings (Zone A & Zone B)
+- **Status**: Completed
+- **Git Tag**: `phase-3` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-3))
+- **Working Steps**:
+  1. Extended `src/materials/proceduralTextures.ts` with `getFacadeWindowTexture` (recessed reflective glass, mullions, spandrel bands, optional arched top-floor windows) and `getRoofRibTexture`.
+  2. Created `src/components/buildings/ArchitecturalKit.tsx` (`WingBlock`, `CourtyardRing`, `RotundaDrum`) with protruding concrete floor-slab stringcourses, base plinths, overhanging pitched gable roofs, and radial rotunda ribs.
+  3. Built `src/components/buildings/HeroBuildings.tsx` modeling `初中部` (linear 5F wing + 18-bay ridge skylight spine + NW rotunda + north annex), `小学部教学楼` (double courtyard + teal pitched roofs + 4 pointed corner turret peaks + glass atrium), `报告厅` (terracotta pitched hall + cylindrical drum + north courtyard), `东侧三角中庭楼` (extruded triangle with circular central atrium hole), and `桂苑` / `松苑`.
+- **How to Access Phase 3**:
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-3`
+  - **Local**: `git checkout phase-3 && npm.cmd install && npm.cmd run dev`
+- **Highlight**: All Zone A & B hero buildings upgraded from massing boxes to multi-layered parametric architecture matching the `效果图` cutouts.
+- **Validation Checklist**:
+  - [ ] Click `初中部 · 主教学楼` preset: verify the 18-bay central skylight spine and NW cylindrical rotunda.
+  - [ ] Click `小学部 · 报告厅` preset: verify teal pitched roofs with 4 corner turret peaks, inner courtyard, and terracotta-roofed `报告厅` + drum pavilion.
+  - [ ] Inspect `东侧三角中庭楼`, `桂苑`, and `松苑` east of `扇形广场`.
+
+
 

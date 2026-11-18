@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
-import { BuildingSpec, pxPos } from '../data/campusLayout';
+import { BuildingSpec } from '../data/campusLayout';
 import {
   getAsphaltTexture,
   getCourtTexture,
@@ -57,6 +57,7 @@ function FootballGoal({ position, rotationY = 0 }: { position: [number, number, 
 export function AthleticsZone({ buildings, editMode, onSelect, onStartDrag }: AthleticsZoneProps) {
   const mainStadium = findSpec(buildings, 'main-stadium');
   const smallTrack = findSpec(buildings, 'small-track');
+  const southCourts = findSpec(buildings, 'south-courts');
   const bindEvents = (spec: BuildingSpec) => ({
     onClick: (e: ThreeEvent<MouseEvent>) => {
       e.stopPropagation();
@@ -243,20 +244,24 @@ export function AthleticsZone({ buildings, editMode, onSelect, onStartDrag }: At
           <planeGeometry args={[48, 26]} />
           <meshStandardMaterial map={pitchTex} roughness={0.9} />
         </mesh>
-        {/* 小足球场 (Mini Football Turf at North End, strictly y = 0.16) */}
-        <mesh position={[-46, 0.16, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        {/* 小足球场 (Mini Football Turf at North End, cleanly outside -42m track curve) */}
+        <mesh position={[-57, 0.16, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
           <planeGeometry args={[24, 34]} />
           <meshStandardMaterial map={pitchTex} roughness={0.9} />
         </mesh>
-        {/* Multi-use red/teal courts at South End (strictly y = 0.16) */}
-        <mesh position={[44, 0.16, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} receiveShadow>
+        {/* Multi-use red/teal courts at South End (cleanly outside +42m track curve) */}
+        <mesh position={[57, 0.16, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} receiveShadow>
           <planeGeometry args={[34, 24]} />
           <meshStandardMaterial map={redCourtTex} roughness={0.82} />
         </mesh>
       </group>
 
-      {/* ==================== 3. SOUTH OUTDOOR COURTS STRIP (px=235..485, py=580 -> Z=97.5) ==================== */}
-      <group position={pxPos(360, 580, 0.14)}>
+      {/* ==================== 3. SOUTH OUTDOOR COURTS STRIP (Editable & Draggable in Edit Mode!) ==================== */}
+      <group
+        position={[southCourts.position[0], 0.14, southCourts.position[2]]}
+        rotation={[0, southCourts.rotationY, 0]}
+        {...bindEvents(southCourts)}
+      >
         {/* West Teal Tennis Court (px=238 -> dx=-79) */}
         <group position={[-79, 0, 0]}>
           <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>

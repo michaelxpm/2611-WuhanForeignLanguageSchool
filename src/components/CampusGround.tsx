@@ -370,7 +370,7 @@ export function CampusGround({
         </group>
       </group>
 
-      {/* ==================== 西北门 · 校园主入口 (Movable as a whole!) ==================== */}
+      {/* ==================== 西北门 · 校园主入口 (Permanent Gate Geometry aligned to road!) ==================== */}
       <group
         position={westGate.position}
         rotation={[0, westGate.rotationY, 0]}
@@ -385,48 +385,50 @@ export function CampusGround({
           onStartDrag('building', westGate.id, e);
         }}
       >
-        <mesh position={[0, 0.06, 0]} receiveShadow>
-          <boxGeometry args={[20, 0.05, 18]} />
-          <meshStandardMaterial map={asphaltTex} color="#434954" roughness={0.85} />
-        </mesh>
-        {[-4.5, -1.5, 1.5, 4.5].map((dz, i) => (
-          <mesh key={i} position={[-5, 0.1, dz]} receiveShadow>
-            <boxGeometry args={[3.0, 0.02, 1.1]} />
-            <meshStandardMaterial color={i % 2 === 0 ? '#facc15' : '#e2e8f0'} roughness={0.7} />
+        <group rotation={[0, Math.PI / 2, 0]}>
+          <mesh position={[0, 0.06, 0]} receiveShadow>
+            <boxGeometry args={[20, 0.05, 18]} />
+            <meshStandardMaterial map={asphaltTex} color="#434954" roughness={0.85} />
           </mesh>
-        ))}
-        <mesh position={[0, 2.4, -6.5]} castShadow receiveShadow>
-          <boxGeometry args={[2.0, 4.8, 2.0]} />
-          <meshStandardMaterial color="#cbd5e1" roughness={0.75} />
-        </mesh>
-        <mesh position={[0, 2.4, 6.5]} castShadow receiveShadow>
-          <boxGeometry args={[2.0, 4.8, 2.0]} />
-          <meshStandardMaterial color="#cbd5e1" roughness={0.75} />
-        </mesh>
-        <mesh position={[-1.02, 2.4, -6.5]} rotation={[0, -Math.PI / 2, 0]}>
-          <planeGeometry args={[0.9, 3.6]} />
-          <meshStandardMaterial map={plaqueLeft} roughness={0.4} />
-        </mesh>
-        <mesh position={[-1.02, 2.4, 6.5]} rotation={[0, -Math.PI / 2, 0]}>
-          <planeGeometry args={[0.9, 3.6]} />
-          <meshStandardMaterial map={plaqueRight} roughness={0.4} />
-        </mesh>
-        <mesh position={[2.5, 1.6, -9.2]} castShadow receiveShadow>
-          <boxGeometry args={[5.0, 3.2, 3.2]} />
-          <meshStandardMaterial color="#475569" roughness={0.6} />
-        </mesh>
-        <mesh position={[0, 1.1, -3.2]} castShadow>
-          <boxGeometry args={[0.25, 2.2, 4.8]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.4} metalness={0.7} />
-        </mesh>
-        <mesh position={[0, 1.1, 3.2]} castShadow>
-          <boxGeometry args={[0.25, 2.2, 4.8]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.4} metalness={0.7} />
-        </mesh>
-        <mesh position={[-1.2, 1.3, 0]} rotation={[0.28, 0, 0]} castShadow>
-          <boxGeometry args={[0.12, 0.12, 4.8]} />
-          <meshStandardMaterial color="#ef4444" roughness={0.4} />
-        </mesh>
+          {[-4.5, -1.5, 1.5, 4.5].map((dz, i) => (
+            <mesh key={i} position={[-5.5, 0.1, dz]} receiveShadow>
+              <boxGeometry args={[3.0, 0.02, 1.1]} />
+              <meshStandardMaterial color={i % 2 === 0 ? '#facc15' : '#e2e8f0'} roughness={0.7} />
+            </mesh>
+          ))}
+          <mesh position={[0, 2.4, -7.2]} castShadow receiveShadow>
+            <boxGeometry args={[2.0, 4.8, 2.0]} />
+            <meshStandardMaterial color="#cbd5e1" roughness={0.75} />
+          </mesh>
+          <mesh position={[0, 2.4, 7.2]} castShadow receiveShadow>
+            <boxGeometry args={[2.0, 4.8, 2.0]} />
+            <meshStandardMaterial color="#cbd5e1" roughness={0.75} />
+          </mesh>
+          <mesh position={[-1.02, 2.4, -7.2]} rotation={[0, -Math.PI / 2, 0]}>
+            <planeGeometry args={[0.9, 3.6]} />
+            <meshStandardMaterial map={plaqueLeft} roughness={0.4} />
+          </mesh>
+          <mesh position={[-1.02, 2.4, 7.2]} rotation={[0, -Math.PI / 2, 0]}>
+            <planeGeometry args={[0.9, 3.6]} />
+            <meshStandardMaterial map={plaqueRight} roughness={0.4} />
+          </mesh>
+          <mesh position={[2.5, 1.6, -10.0]} castShadow receiveShadow>
+            <boxGeometry args={[5.0, 3.2, 3.2]} />
+            <meshStandardMaterial color="#475569" roughness={0.6} />
+          </mesh>
+          <mesh position={[0, 1.1, -3.6]} castShadow>
+            <boxGeometry args={[0.25, 2.2, 5.2]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.4} metalness={0.7} />
+          </mesh>
+          <mesh position={[0, 1.1, 3.6]} castShadow>
+            <boxGeometry args={[0.25, 2.2, 5.2]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.4} metalness={0.7} />
+          </mesh>
+          <mesh position={[-1.2, 1.3, 0]} rotation={[0.28, 0, 0]} castShadow>
+            <boxGeometry args={[0.12, 0.12, 5.2]} />
+            <meshStandardMaterial color="#ef4444" roughness={0.4} />
+          </mesh>
+        </group>
       </group>
     </group>
   );

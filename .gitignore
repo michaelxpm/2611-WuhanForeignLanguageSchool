@@ -3,3 +3,4 @@ dist-ssr
 *.local
 .DS_Store
 *.mp4
+characters/*.zip

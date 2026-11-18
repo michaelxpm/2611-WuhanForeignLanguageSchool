@@ -212,6 +212,27 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Switch to `女生漫步` and walk/sprint (`WASD` + `Shift`) to verify knee bend, torso counter-rotation, coat/ponytail bounce, and rolling schoolbag.
   - [ ] Enter `编辑模式`, drag `西北门` or any building/road node/tree directly on the 3D ground, press `Ctrl+Z` / `Ctrl+Y` to undo/redo, and refresh the browser to confirm permanent `localStorage` persistence.
 
+---
+
+## Phase 9 — Realistic GLTF Trees, Plant-Your-Own-Tree, Kuromi & Iron Man Characters, Mobile Touch Controls & Layout Fixes
+- **Status**: Completed
+- **Git Tag**: `phase-9` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-9))
+- **Working Steps**:
+  1. Extracted & integrated 3 real `.gltf` tree models (`oak_tree`, `maple_tree`, `lowpoly_tree`) into `public/models/` and upgraded `CampusFoliage.tsx` with `mergeGeometries` + `InstancedMesh` rendering, `alphaTest` leaf shadows, a live Tree Style comparison switcher, and **Plant Tree (`种树`)** mode.
+  2. Removed the old eye-level First-Person mode, renamed `女生漫步` → **`第一人称`**, removed the rolling trolley, sculpted a smoother realistic girl character (`CapsuleGeometry` limbs, rounded shoulders, bangs/ears/expressive eyes/smile, ponytail), and integrated **Kuromi** & **Iron Man** (`public/models/kuromi`, `public/models/iron_man`) with physics-driven procedural walk animation and a character switcher.
+  3. Added mouse-wheel & two-finger pinch zoom (`1.6 m – 12.0 m`) during character walk, plus `src/components/MobileJoystick.tsx` (virtual thumbstick + sprint + touch drag/pinch for mobile without cluttering desktop).
+  4. Permanently aligned `西北门` gatehouse geometry (`Math.PI / 2`), separated `小学部教学楼` & `报告厅`, removed the extra road next to `小操场`, fixed `小操场` track/court overlap (`x = ±57`), and made `南侧篮球网球场群` (`south-courts`) editable & draggable in `编辑模式`.
+- **How to Access Phase 9**:
+  - **Live Website**: `https://michaelxpm.github.io/2611-WuhanForeignLanguageSchool/`
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-9`
+  - **Local**: `git checkout phase-9 && npm.cmd install && npm.cmd run dev` (or `git checkout main`)
+- **Highlight**: Real GLTF broadleaf trees (with user tree-planting & species comparison), Girl / Kuromi / Iron Man character switching, mobile touch controls, and zero-overlap `小操场` & `小学部` alignment.
+- **Validation Checklist**:
+  - [ ] Switch tree styles (`混合真树 / 橡树 Oak / 枫树 Maple / 阔叶 LowPoly / 几何树冠`) and test `种树` mode by clicking on the campus lawn.
+  - [ ] Enter `第一人称`, switch between `女生 / 库洛米 / 钢铁侠`, and test mouse-wheel zoom + mobile touch joystick (`触屏摇杆`).
+  - [ ] Inspect `西北门`, `小学部教学楼` / `报告厅`, and `小操场` (verify zero overlap and deleted side road), and drag `南侧篮球网球场群` in `编辑模式`.
+
+
 
 
 

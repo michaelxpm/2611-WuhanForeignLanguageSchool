@@ -6,7 +6,7 @@ import {
   Download,
   Eye,
   EyeOff,
-  Footprints,
+  Gamepad2,
   Grid3X3,
   MapPin,
   MousePointerClick,
@@ -18,10 +18,14 @@ import {
   RotateCw,
   Save,
   Square,
+  Trees,
   Undo2,
   UserRound,
   X,
 } from 'lucide-react';
+import { TreeDisplayStyle } from './components/CampusFoliage';
+import { MobileJoystickInput, WalkerCharacter } from './components/GirlWalker';
+import { MobileJoystick } from './components/MobileJoystick';
 import { CameraMode, DragKind, SceneRoot } from './components/SceneRoot';
 import { BUILDINGS, BuildingSpec, CAMERA_PRESETS, CameraPreset } from './data/campusLayout';
 import {
@@ -29,9 +33,10 @@ import {
   generateDefaultTrees,
   RoadNode,
   TreeItem,
+  TreeSpecies,
 } from './data/editableDefaults';
 
-const STORAGE_KEY = 'wfls-campus-layout-v1';
+const STORAGE_KEY = 'wfls-campus-layout-v2';
 
 interface LayoutSnapshot {
   buildings: BuildingSpec[];
@@ -59,8 +64,13 @@ function loadSavedSnapshot(): LayoutSnapshot {
     if (!raw) return defaultSnapshot();
     const parsed = JSON.parse(raw) as Partial<LayoutSnapshot>;
     const def = defaultSnapshot();
+    // Merge any newly added default buildings (like south-courts) if missing from older save
+    const savedBuildings = parsed.buildings?.length ? parsed.buildings : def.buildings;
+    const mergedBuildings = def.buildings.map(
+      (db) => savedBuildings.find((sb) => sb.id === db.id) ?? db
+    );
     return {
-      buildings: parsed.buildings?.length ? parsed.buildings : def.buildings,
+      buildings: mergedBuildings,
       roadNodes: parsed.roadNodes?.length ? parsed.roadNodes : def.roadNodes,
       trees: parsed.trees?.length ? parsed.trees : def.trees,
     };
@@ -79,9 +89,14 @@ export function App() {
   const [future, setFuture] = useState<LayoutSnapshot[]>([]);
   const [justSaved, setJustSaved] = useState(false);
 
-  // Keep a ref to latest state for synchronous snapshot capture
   const latestRef = useRef<LayoutSnapshot>({ buildings, roadNodes, trees });
   latestRef.current = { buildings, roadNodes, trees };
+
+  const mobileInputRef = useRef<MobileJoystickInput>({ x: 0, y: 0, sprint: false });
+  const [isTouchDevice] = useState(
+    () => typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)
+  );
+  const [showMobilePad, setShowMobilePad] = useState(false);
 
   const cloneSnap = (s: LayoutSnapshot): LayoutSnapshot => ({
     buildings: s.buildings.map((b) => ({ ...b, position: [...b.position] })),
@@ -130,7 +145,6 @@ export function App() {
     });
   }, [persistNow]);
 
-  // Ctrl+Z / Ctrl+Y keyboard shortcuts
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey)) return;
@@ -152,6 +166,11 @@ export function App() {
   const [showLabels, setShowLabels] = useState(true);
   const [showGrid, setShowGrid] = useState(false);
   const [cameraMode, setCameraMode] = useState<CameraMode>('orbit');
+  const [walkerCharacter, setWalkerCharacter] = useState<WalkerCharacter>('girl');
+  const [treeStyle, setTreeStyle] = useState<TreeDisplayStyle>('mixed');
+  const [plantTreeMode, setPlantTreeMode] = useState(false);
+  const [plantSpecies, setPlantSpecies] = useState<TreeSpecies>('oak');
+
   const [showDirectory, setShowDirectory] = useState(false);
   const [yawDeg, setYawDeg] = useState(0);
   const [autoOrbit, setAutoOrbit] = useState(false);
@@ -265,6 +284,24 @@ export function App() {
     window.setTimeout(() => persistNow(), 50);
   };
 
+  const handlePlantTreeAt = (x: number, z: number) => {
+    pushHistory();
+    const newTree: TreeItem = {
+      id: `user-tree-${Date.now()}`,
+      x,
+      z,
+      scale: 1.0,
+      shade: Math.random(),
+      species: plantSpecies,
+    };
+    setTrees((prev) => {
+      const next = [...prev, newTree];
+      window.setTimeout(() => persistNow({ ...latestRef.current, trees: next }), 20);
+      return next;
+    });
+    setEditSelection({ kind: 'tree', id: newTree.id });
+  };
+
   const exportLayoutJson = () => {
     const payload = {
       buildings: buildings.map((b) => ({ id: b.id, position: b.position, rotationY: b.rotationY })),
@@ -297,6 +334,7 @@ export function App() {
         buildings={buildings}
         roadNodes={roadNodes}
         trees={trees}
+        treeStyle={treeStyle}
         activePreset={activePreset}
         selectedBuilding={selectedBuilding}
         selectedRoadNodeId={selectedRoadNode?.id ?? null}
@@ -304,9 +342,12 @@ export function App() {
         showLabels={showLabels}
         showGrid={showGrid}
         cameraMode={cameraMode}
+        walkerCharacter={walkerCharacter}
+        mobileInputRef={mobileInputRef}
         autoOrbit={autoOrbit}
         editMode={editMode}
         clickToMove={clickToMove}
+        plantTreeMode={plantTreeMode}
         onSelectBuilding={(b) => {
           setSelectedBuildingId(b?.id ?? null);
           setAutoTour(false);
@@ -328,6 +369,7 @@ export function App() {
           setEditSelection({ kind: 'tree', id: tree.id });
         }}
         onGroundClickInEdit={handleGroundClickInEdit}
+        onPlantTreeAt={handlePlantTreeAt}
         onDragStart={pushHistory}
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
@@ -349,13 +391,14 @@ export function App() {
             武汉外国语学校 · 3D 数字校园
           </h1>
           <p className="text-[11px] text-slate-400">
-            Wuhan Foreign Languages School · Phase 8.5 Physics & Drag Edit
+            Wuhan Foreign Languages School · Phase 9 Real Trees & Characters
           </p>
         </div>
       </div>
 
       {/* Top-Right Controls */}
-      <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center justify-end gap-2 max-w-[68vw]">
+      <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center justify-end gap-2 max-w-[70vw]">
+        {/* Camera Mode Switcher: Orbit / First-Person (Character Walk) */}
         <div className="flex items-center bg-slate-900/80 backdrop-blur-md border border-slate-700/70 rounded-xl p-1 shadow-lg">
           <button
             onClick={() => {
@@ -371,23 +414,10 @@ export function App() {
           </button>
           <button
             onClick={() => {
-              setCameraMode('walk');
-              setAutoTour(false);
-              setEditMode(false);
-              setSelectedBuildingId(null);
-            }}
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-              cameraMode === 'walk' ? 'bg-emerald-500 text-slate-950 shadow' : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            <Footprints className="w-3.5 h-3.5" />
-            <span>第一人称</span>
-          </button>
-          <button
-            onClick={() => {
               setCameraMode('girl');
               setAutoTour(false);
               setEditMode(false);
+              setPlantTreeMode(false);
               setSelectedBuildingId(null);
             }}
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
@@ -395,13 +425,82 @@ export function App() {
             }`}
           >
             <UserRound className="w-3.5 h-3.5" />
-            <span>女生漫步</span>
+            <span>第一人称</span>
           </button>
         </div>
+
+        {/* Character Switcher when in First-Person Mode */}
+        {cameraMode === 'girl' && (
+          <div className="flex items-center bg-slate-900/85 backdrop-blur-md border border-pink-500/40 rounded-xl p-1 shadow-lg">
+            {(
+              [
+                { id: 'girl', label: '女生' },
+                { id: 'kuromi', label: '库洛米' },
+                { id: 'ironman', label: '钢铁侠' },
+              ] as { id: WalkerCharacter; label: string }[]
+            ).map((ch) => (
+              <button
+                key={ch.id}
+                onClick={() => setWalkerCharacter(ch.id)}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+                  walkerCharacter === ch.id
+                    ? 'bg-pink-500 text-white shadow'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                {ch.label}
+              </button>
+            ))}
+            <button
+              onClick={() => setShowMobilePad((v) => !v)}
+              title="切换触屏摇杆"
+              className={`ml-1 p-1.5 rounded-lg transition cursor-pointer ${
+                showMobilePad || isTouchDevice ? 'text-sky-400' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Gamepad2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Tree Model Style Switcher */}
+        <div className="hidden lg:flex items-center gap-1 bg-slate-900/80 backdrop-blur-md border border-slate-700/70 rounded-xl px-2 py-1 shadow-lg text-xs">
+          <Trees className="w-3.5 h-3.5 text-emerald-400 mr-1" />
+          <select
+            value={treeStyle}
+            onChange={(e) => setTreeStyle(e.target.value as TreeDisplayStyle)}
+            className="bg-transparent text-slate-200 outline-none cursor-pointer text-xs"
+            title="切换树种模型对比效果"
+          >
+            <option value="mixed" className="bg-slate-900">混合真树 (Oak+Maple+LowPoly)</option>
+            <option value="oak" className="bg-slate-900">橡树模型 (Oak)</option>
+            <option value="maple" className="bg-slate-900">枫树模型 (Maple)</option>
+            <option value="lowpoly" className="bg-slate-900">阔叶模型 (LowPoly)</option>
+            <option value="procedural" className="bg-slate-900">几何树冠 (对比)</option>
+          </select>
+        </div>
+
+        {/* Plant Tree Quick Toggle */}
+        <button
+          onClick={() => {
+            setPlantTreeMode((v) => !v);
+            setCameraMode('orbit');
+            setAutoTour(false);
+          }}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border backdrop-blur-md shadow-lg transition cursor-pointer ${
+            plantTreeMode
+              ? 'bg-emerald-500 text-slate-950 border-emerald-300'
+              : 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border-slate-700/70'
+          }`}
+        >
+          <Trees className="w-3.5 h-3.5" />
+          <span>{plantTreeMode ? '点击地面种树中…' : '种树'}</span>
+        </button>
 
         <button
           onClick={() => {
             setEditMode((v) => !v);
+            setPlantTreeMode(false);
             setCameraMode('orbit');
             setAutoTour(false);
             setClickToMove(false);
@@ -419,6 +518,7 @@ export function App() {
         <button
           onClick={() => {
             setEditMode(false);
+            setPlantTreeMode(false);
             setAutoTour((v) => !v);
           }}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border backdrop-blur-md shadow-lg transition cursor-pointer ${
@@ -457,6 +557,42 @@ export function App() {
           {showLabels ? <Eye className="w-3.5 h-3.5 text-sky-400" /> : <EyeOff className="w-3.5 h-3.5" />}
         </button>
       </div>
+
+      {/* Plant Tree Species Selector Banner */}
+      {plantTreeMode && (
+        <div className="absolute top-24 left-4 z-10 bg-slate-900/90 backdrop-blur-md border border-emerald-500/50 rounded-2xl p-3 shadow-2xl w-72">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-emerald-300">自主种树模式 (点击地面种植)</span>
+            <button onClick={() => setPlantTreeMode(false)} className="text-slate-400 hover:text-white cursor-pointer">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className="flex gap-1.5">
+            {(
+              [
+                { id: 'oak', label: '橡树 Oak' },
+                { id: 'maple', label: '枫树 Maple' },
+                { id: 'lowpoly', label: '阔叶 LowPoly' },
+              ] as { id: TreeSpecies; label: string }[]
+            ).map((sp) => (
+              <button
+                key={sp.id}
+                onClick={() => setPlantSpecies(sp.id)}
+                className={`flex-1 py-1.5 rounded-lg text-[11px] font-medium transition cursor-pointer ${
+                  plantSpecies === sp.id
+                    ? 'bg-emerald-500 text-slate-950'
+                    : 'bg-slate-800 text-slate-300 hover:text-white'
+                }`}
+              >
+                {sp.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] text-slate-400">
+            支持 Ctrl+Z 撤销种植，位置自动永久保存。当前树木: {trees.length} 棵
+          </p>
+        </div>
+      )}
 
       {/* Edit Mode Inspector Panel */}
       {editMode && (
@@ -510,7 +646,7 @@ export function App() {
           {!editSelection ? (
             <p className="text-xs text-slate-300 leading-relaxed">
               直接<span className="text-amber-300 font-semibold">按住并拖动</span>场景中的任意{' '}
-              <span className="text-amber-300 font-semibold">建筑（含校门）</span>、
+              <span className="text-amber-300 font-semibold">建筑（含校门与球场）</span>、
               <span className="text-cyan-300 font-semibold">青色道路节点</span> 或{' '}
               <span className="text-emerald-300 font-semibold">树木</span> 即可移动；支持{' '}
               <kbd className="px-1 py-0.5 rounded bg-slate-800 text-[10px]">Ctrl+Z</kbd> 撤销 /{' '}
@@ -679,13 +815,16 @@ export function App() {
         </div>
       )}
 
-      {/* Walk Mode Help Banner */}
-      {cameraMode !== 'orbit' && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 bg-slate-900/85 border border-sky-500/50 text-slate-100 px-4 py-2 rounded-full text-xs font-medium shadow-lg backdrop-blur-md">
-          {cameraMode === 'girl'
-            ? '女生第三人称漫步：WASD / 方向键行走 · Shift 奔跑 · 鼠标拖拽旋转侧后视角'
-            : '第一人称漫步模式：WASD / 方向键移动 · Shift 加速 · 鼠标拖拽旋转视角'}
+      {/* First-Person Character Walk Help Banner */}
+      {cameraMode === 'girl' && (
+        <div className="hidden sm:block absolute top-20 left-1/2 -translate-x-1/2 z-10 bg-slate-900/85 border border-pink-500/50 text-slate-100 px-4 py-2 rounded-full text-xs font-medium shadow-lg backdrop-blur-md">
+          第一人称漫步：WASD / 方向键行走 · Shift 奔跑 · 鼠标拖拽旋转视角 · 滚轮/双指缩放远近
         </div>
+      )}
+
+      {/* Mobile Touch Virtual Joystick (shown on touch devices or when toggled) */}
+      {cameraMode === 'girl' && (isTouchDevice || showMobilePad) && (
+        <MobileJoystick inputRef={mobileInputRef} />
       )}
 
       {/* Bottom Camera Presets Bar */}

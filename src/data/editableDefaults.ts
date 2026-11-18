@@ -44,8 +44,6 @@ export const DEFAULT_ROAD_NODES: RoadNode[] = [
 
   nodePx('dorm-s', '宿舍区中路南口', 832, 270),
   nodePx('dorm-n', '宿舍区中路北口', 832, 75),
-  nodePx('dorm-w', '竹苑西路口', 758, 265),
-  nodePx('dorm-nw', '梅苑西路口', 758, 120),
 
   nodePx('east-n', '东侧环路北口', 888, 415),
   nodePx('east-s', '东侧环路南口', 888, 605),
@@ -67,15 +65,15 @@ export const ROAD_EDGES: RoadEdge[] = [
   { from: 'rb-nw', to: 'aud-e', width: 6.5, y: 0.08, color: '#d6cfc4' },
   { from: 'rb-n', to: 'mid-n', width: 7.5, y: 0.08, color: '#d6cfc4' },
   { from: 'mid-n', to: 'north-jct', width: 7.5, y: 0.08, color: '#d6cfc4' },
-  // North zone
+  // North zone (removed extra road next to 小操场)
   { from: 'north-jct', to: 'dorm-s', width: 6.5, y: 0.08, color: '#d6cfc4' },
   { from: 'dorm-s', to: 'dorm-n', width: 6.5, y: 0.08, color: '#d6cfc4' },
-  { from: 'dorm-s', to: 'dorm-w', width: 6.0, y: 0.08, color: '#d6cfc4' },
-  { from: 'dorm-w', to: 'dorm-nw', width: 5.5, y: 0.08, color: '#d6cfc4' },
   // East perimeter
   { from: 'mid-n', to: 'east-n', width: 7.0, y: 0.07, color: '#d6cfc4' },
   { from: 'east-n', to: 'east-s', width: 7.0, y: 0.07, color: '#d6cfc4' },
 ];
+
+export type TreeSpecies = 'oak' | 'maple' | 'lowpoly';
 
 export interface TreeItem {
   id: string;
@@ -83,6 +81,7 @@ export interface TreeItem {
   z: number;
   scale: number;
   shade: number;
+  species?: TreeSpecies;
 }
 
 export function generateDefaultTrees(): TreeItem[] {

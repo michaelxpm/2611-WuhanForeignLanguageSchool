@@ -6,15 +6,14 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { BuildingSpec, CameraPreset } from '../data/campusLayout';
 import { RoadNode, TreeItem } from '../data/editableDefaults';
 import { AthleticsZone } from './AthleticsZone';
-import { CampusFoliage } from './CampusFoliage';
+import { CampusFoliage, TreeDisplayStyle } from './CampusFoliage';
 import { CampusGround } from './CampusGround';
 import { EnvironmentEffects } from './EnvironmentEffects';
-import { FirstPersonControls } from './FirstPersonControls';
-import { GirlWalker } from './GirlWalker';
+import { GirlWalker, MobileJoystickInput, WalkerCharacter } from './GirlWalker';
 import { HeroBuildings } from './buildings/HeroBuildings';
 import { NorthZoneBuildings } from './buildings/NorthZoneBuildings';
 
-export type CameraMode = 'orbit' | 'walk' | 'girl';
+export type CameraMode = 'orbit' | 'girl';
 export type DragKind = 'building' | 'road' | 'tree';
 
 interface DragInfo {
@@ -142,6 +141,7 @@ interface SceneRootProps {
   buildings: BuildingSpec[];
   roadNodes: RoadNode[];
   trees: TreeItem[];
+  treeStyle: TreeDisplayStyle;
   activePreset: CameraPreset | null;
   selectedBuilding: BuildingSpec | null;
   selectedRoadNodeId: string | null;
@@ -149,13 +149,17 @@ interface SceneRootProps {
   showLabels: boolean;
   showGrid: boolean;
   cameraMode: CameraMode;
+  walkerCharacter: WalkerCharacter;
+  mobileInputRef: React.MutableRefObject<MobileJoystickInput>;
   autoOrbit: boolean;
   editMode: boolean;
   clickToMove: boolean;
+  plantTreeMode: boolean;
   onSelectBuilding: (spec: BuildingSpec | null) => void;
   onSelectRoadNode: (node: RoadNode) => void;
   onSelectTree: (tree: TreeItem) => void;
   onGroundClickInEdit: (x: number, z: number) => void;
+  onPlantTreeAt: (x: number, z: number) => void;
   onDragStart: () => void;
   onDragMove: (kind: DragKind, id: string, x: number, z: number) => void;
   onDragEnd: () => void;
@@ -167,6 +171,7 @@ export function SceneRoot({
   buildings,
   roadNodes,
   trees,
+  treeStyle,
   activePreset,
   selectedBuilding,
   selectedRoadNodeId,
@@ -174,13 +179,17 @@ export function SceneRoot({
   showLabels,
   showGrid,
   cameraMode,
+  walkerCharacter,
+  mobileInputRef,
   autoOrbit,
   editMode,
   clickToMove,
+  plantTreeMode,
   onSelectBuilding,
   onSelectRoadNode,
   onSelectTree,
   onGroundClickInEdit,
+  onPlantTreeAt,
   onDragStart,
   onDragMove,
   onDragEnd,
@@ -237,9 +246,16 @@ export function SceneRoot({
   }, [dragInfo, onDragEnd]);
 
   const handleGroundClick = (e: ThreeEvent<MouseEvent>) => {
+    const x = Math.round(e.point.x * 10) / 10;
+    const z = Math.round(e.point.z * 10) / 10;
+    if (plantTreeMode) {
+      e.stopPropagation();
+      onPlantTreeAt(x, z);
+      return;
+    }
     if (editMode && clickToMove) {
       e.stopPropagation();
-      onGroundClickInEdit(Math.round(e.point.x * 10) / 10, Math.round(e.point.z * 10) / 10);
+      onGroundClickInEdit(x, z);
     }
   };
 
@@ -319,9 +335,10 @@ export function SceneRoot({
         onStartDrag={handleStartDrag}
       />
 
-      {/* Instanced Foliage (draggable in Edit Mode) */}
+      {/* Instanced Foliage (GLTF Oak/Maple/LowPoly + draggable in Edit Mode) */}
       <CampusFoliage
         trees={trees}
+        treeStyle={treeStyle}
         editMode={editMode}
         selectedTreeId={selectedTreeId}
         onSelectTree={onSelectTree}
@@ -380,8 +397,14 @@ export function SceneRoot({
           onYawChange={onYawChange}
         />
       )}
-      {cameraMode === 'walk' && <FirstPersonControls enabled={true} onYawChange={onYawChange} />}
-      {cameraMode === 'girl' && <GirlWalker enabled={true} onYawChange={onYawChange} />}
+      {cameraMode === 'girl' && (
+        <GirlWalker
+          enabled={true}
+          character={walkerCharacter}
+          mobileInputRef={mobileInputRef}
+          onYawChange={onYawChange}
+        />
+      )}
     </Canvas>
   );
 }

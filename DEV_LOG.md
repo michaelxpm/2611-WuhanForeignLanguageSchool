@@ -289,6 +289,28 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Inspect `东风大道` and `东风大道高架桥`: verify zero buildings on the road/viaduct, with apartment towers cleanly behind the viaduct, `金桥·太子湖1号` NW of the stadium, and `新民花园` terracotta villas south of `太子湖北路`.
   - [ ] Click `车辆控制` in the top bar to test pausing/resuming, speed slider, vehicle count slider, and `全部 / 仅公交 / 仅轿车` filter.
 
+---
+
+## Phase 12 Fix — Clean Intersection, Viaduct & Off-Campus Removal, Road Labels, Vehicle & Character Orientations
+- **Status**: Completed
+- **Git Tag**: `phase-12-fix` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-12-fix))
+- **Working Steps**:
+  1. Rebuilt the `东风大道 × 太子湖北路` intersection in `CampusGround.tsx` with 4 separate approach segments, a clean open `36 m × 36 m` asphalt junction box, 4 zebra crosswalks, solid stop lines, corner sidewalk aprons, and 4 corner traffic lights.
+  2. Removed the elevated viaduct (`东风大道高架桥`) from `CampusGround.tsx` and removed all off-campus buildings from `CveStreetscape.tsx`.
+  3. Added 3D road signage labels for `东风大道 · Dongfeng Blvd` and `太子湖北路 · Taizihu N Rd` in `CveStreetscape.tsx`.
+  4. Fixed `-Z`-forward vehicle headings in `ExternalTraffic.tsx` (`+X -> -PI/2`, `-X -> +PI/2`, `+Z -> PI`, `-Z -> 0`) so all cars and buses drive forward.
+  5. Replaced the broken Kuromi model (`ltf.bin`) with clean `kuromi.zip` (`scene.bin` + 12 meshes) in `public/models/kuromi/` and rotated both `iron_man` and `kuromi` by `Math.PI` in `GirlWalker.tsx` so neither runs backwards.
+- **How to Access Phase 12 Fix**:
+  - **Live Website**: `https://michaelxpm.github.io/2611-WuhanForeignLanguageSchool/`
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-12-fix`
+  - **Local**: `git checkout phase-12-fix && npm.cmd install && npm.cmd run dev` (or `git checkout main`)
+- **Highlight**: Clean urban intersection, labeled boulevards, zero backwards vehicles or characters, and working Kuromi model.
+- **Validation Checklist**:
+  - [ ] Inspect the SW `东风大道 × 太子湖北路` intersection: verify clean open asphalt center, zebra crosswalks, stop lines, no viaduct, no off-campus houses, and clear `东风大道` / `太子湖北路` labels.
+  - [ ] Watch cars and buses on both roads to confirm all drive forward in their lanes.
+  - [ ] Enter `第一人称` and switch to `库洛米` and `钢铁侠` to verify both load cleanly and run forward.
+
+
 
 
 

@@ -141,8 +141,10 @@ function MovingTrafficContent({ config }: { config: TrafficConfig }) {
 
         const bp =
           v.kind === 'car' ? carBp : v.kind === 'city_bus' ? cityBusBp : isuzuBusBp;
+        // All normalized blueprints face -Z forward:
+        // +X (East) -> -PI/2, -X (West) -> +PI/2, +Z (South) -> PI, -Z (North) -> 0
         const rotY =
-          v.axis === 'x' ? (v.dir === 1 ? Math.PI / 2 : -Math.PI / 2) : v.dir === 1 ? 0 : Math.PI;
+          v.axis === 'x' ? (v.dir === 1 ? -Math.PI / 2 : Math.PI / 2) : v.dir === 1 ? Math.PI : 0;
         const initPos: [number, number, number] =
           v.axis === 'x' ? [offsets.current[i], 0.06, v.laneCoord] : [v.laneCoord, 0.06, offsets.current[i]];
         return (

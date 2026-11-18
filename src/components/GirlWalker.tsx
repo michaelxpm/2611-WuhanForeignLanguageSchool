@@ -42,8 +42,10 @@ function NormalizedGltfCharacter({ url, targetHeight }: { url: string; targetHei
   }, [gltf.scene, targetHeight]);
 
   return (
-    <group position={offset} scale={[scale, scale, scale]}>
-      <primitive object={cloned} />
+    <group rotation={[0, Math.PI, 0]}>
+      <group position={offset} scale={[scale, scale, scale]}>
+        <primitive object={cloned} />
+      </group>
     </group>
   );
 }

@@ -36,7 +36,7 @@ import {
   TreeSpecies,
 } from './data/editableDefaults';
 
-const STORAGE_KEY = 'wfls-campus-layout-v2';
+const STORAGE_KEY = 'wfls-campus-layout-v3';
 
 interface LayoutSnapshot {
   buildings: BuildingSpec[];

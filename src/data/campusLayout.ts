@@ -82,8 +82,8 @@ export const BUILDINGS: BuildingSpec[] = [
     nameZh: '西北门 · 校园主入口',
     nameEn: 'Main School Gate (SW Entrance)',
     zone: 'south',
-    position: pxPos(195, 544), // [-373.8, 0, 74.1]
-    rotationY: 0,
+    position: [-403.4, 0, 73.2],
+    rotationY: (-90 * Math.PI) / 180,
     dimensions: [16, 6, 22],
     stories: 1,
     roofColor: '#1e293b',
@@ -363,7 +363,7 @@ export const CAMERA_PRESETS: CameraPreset[] = [
     id: 'west-gate',
     labelZh: '校园主入口 (校门)',
     labelEn: 'Main Gate',
-    position: [-335, 24, 110],
-    target: [-374, 3, 74],
+    position: [-355, 26, 108],
+    target: [-403.4, 3, 73.2],
   },
 ];

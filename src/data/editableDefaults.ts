@@ -21,10 +21,10 @@ function nodePx(id: string, label: string, px: number, py: number): RoadNode {
 }
 
 export const DEFAULT_ROAD_NODES: RoadNode[] = [
-  nodePx('gate', '校门主入口节点', 195, 544),
+  { id: 'gate', label: '校门主入口节点', x: -394.0, z: 73.2 },
   nodePx('ped-east', '主干道东端 (广场口)', 610, 544),
-  nodePx('stad-sw', '体育场西南弯', 166, 488),
-  nodePx('stad-nw', '体育场西北弯', 166, 396),
+  { id: 'stad-sw', label: '体育场西南弯', x: -394.0, z: 32.0 },
+  { id: 'stad-nw', label: '体育场西北弯', x: -394.0, z: -22.0 },
   nodePx('stad-n-w', '看台北侧西口', 215, 345),
   nodePx('stad-n-e', '看台北侧东口', 482, 345),
   nodePx('stad-se', '体育场东侧南口', 482, 544),

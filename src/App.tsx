@@ -36,7 +36,7 @@ import {
   TreeSpecies,
 } from './data/editableDefaults';
 
-const STORAGE_KEY = 'wfls-campus-layout-v3';
+const STORAGE_KEY = 'wfls-campus-layout-v4';
 
 interface LayoutSnapshot {
   buildings: BuildingSpec[];
@@ -692,7 +692,7 @@ export function App() {
                       </span>
                       <input
                         type="range"
-                        min={-400}
+                        min={-450}
                         max={200}
                         step={0.5}
                         value={curX}

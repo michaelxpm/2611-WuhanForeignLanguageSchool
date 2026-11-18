@@ -205,25 +205,60 @@ export function AthleticsZone({ buildings, editMode, onSelect, onStartDrag }: At
               <meshStandardMaterial color="#f8fafc" roughness={0.7} />
             </mesh>
           ))}
-          {/* Parked cars */}
+          {/* CVE High-Detail Multi-Part Parked Cars (wheels, hubs, glass cabin, lights, mirrors) */}
           {[
-            { x: -16, z: -7, c: '#e2e8f0' },
-            { x: -8, z: -7, c: '#334155' },
-            { x: -4, z: -7, c: '#1e3a8a' },
-            { x: 4, z: -7, c: '#94a3b8' },
-            { x: 12, z: -7, c: '#dc2626' },
-            { x: -12, z: 7, c: '#475569' },
-            { x: 0, z: 7, c: '#f8fafc' },
+            { x: -16, z: -7, c: '#d4d9d5', rot: 0 },
+            { x: -8, z: -7, c: '#536e78', rot: 0 },
+            { x: -4, z: -7, c: '#1e3a8a', rot: Math.PI },
+            { x: 4, z: -7, c: '#94a3b8', rot: 0 },
+            { x: 12, z: -7, c: '#a94d47', rot: 0 },
+            { x: -12, z: 7, c: '#39454b', rot: Math.PI },
+            { x: 0, z: 7, c: '#f8fafc', rot: Math.PI },
           ].map((car, ci) => (
-            <group key={ci} position={[car.x, 0, car.z]}>
-              <mesh position={[0, 0.45, 0]} castShadow>
-                <boxGeometry args={[1.8, 0.65, 4.1]} />
-                <meshStandardMaterial color={car.c} roughness={0.35} metalness={0.4} />
+            <group key={ci} position={[car.x, 0, car.z]} rotation={[0, car.rot, 0]}>
+              {/* Lower body */}
+              <mesh position={[0, 0.58, 0]} castShadow>
+                <boxGeometry args={[1.88, 0.58, 4.25]} />
+                <meshStandardMaterial color={car.c} roughness={0.25} metalness={0.42} />
               </mesh>
-              <mesh position={[0, 0.95, -0.2]} castShadow>
-                <boxGeometry args={[1.5, 0.48, 2.1]} />
-                <meshStandardMaterial color="#1e293b" roughness={0.2} metalness={0.5} />
+              {/* Dark glass cabin */}
+              <mesh position={[0, 1.05, -0.2]} castShadow>
+                <boxGeometry args={[1.64, 0.54, 2.25]} />
+                <meshStandardMaterial color="#2b4854" roughness={0.16} metalness={0.55} />
               </mesh>
+              {/* Roof cap */}
+              <mesh position={[0, 1.34, -0.25]} castShadow>
+                <boxGeometry args={[1.56, 0.08, 1.45]} />
+                <meshStandardMaterial color={car.c} roughness={0.25} metalness={0.42} />
+              </mesh>
+              {/* 4 Rubber wheels + metallic silver rims */}
+              {[-1, 1].map((side) =>
+                [-1.32, 1.32].map((wz, wi) => (
+                  <group key={`${side}-${wi}`} position={[side * 0.94, 0.36, wz]}>
+                    <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
+                      <cylinderGeometry args={[0.36, 0.36, 0.22, 16]} />
+                      <meshStandardMaterial color="#161b1d" roughness={0.95} />
+                    </mesh>
+                    <mesh rotation={[0, 0, Math.PI / 2]}>
+                      <cylinderGeometry args={[0.21, 0.21, 0.24, 12]} />
+                      <meshStandardMaterial color="#a8b3b6" roughness={0.25} metalness={0.7} />
+                    </mesh>
+                  </group>
+                ))
+              )}
+              {/* Headlights & Taillights */}
+              {[-0.64, 0.64].map((lx, li) => (
+                <group key={li}>
+                  <mesh position={[lx, 0.62, 2.13]}>
+                    <boxGeometry args={[0.38, 0.16, 0.06]} />
+                    <meshStandardMaterial color="#f8fafc" emissive="#fef08a" emissiveIntensity={0.25} />
+                  </mesh>
+                  <mesh position={[lx, 0.62, -2.13]}>
+                    <boxGeometry args={[0.38, 0.16, 0.06]} />
+                    <meshStandardMaterial color="#b92c25" roughness={0.25} />
+                  </mesh>
+                </group>
+              ))}
             </group>
           ))}
         </group>

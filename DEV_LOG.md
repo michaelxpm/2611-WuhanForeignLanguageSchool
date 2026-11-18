@@ -232,6 +232,27 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Enter `第一人称`, switch between `女生 / 库洛米 / 钢铁侠`, and test mouse-wheel zoom + mobile touch joystick (`触屏摇杆`).
   - [ ] Inspect `西北门`, `小学部教学楼` / `报告厅`, and `小操场` (verify zero overlap and deleted side road), and drag `南侧篮球网球场群` in `编辑模式`.
 
+---
+
+## Phase 10 — City Visual Explorer (CVE) Visual Quality Deployment
+- **Status**: Completed
+- **Git Tag**: `phase-10` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-10))
+- **Working Steps**:
+  1. Studied `D:\coding\city_visual_explorer_V2B` (`src/scene.js`, `src/main.js`, `assets/textures/`) and copied its 9 seamless PBR color + normal maps (`asphalt`, `brick`, `concrete`, `stucco`, `foliage`) into `public/textures/` (leaving `city_visual_explorer_V2B` untouched).
+  2. Upgraded `src/materials/proceduralTextures.ts`, `src/components/CampusGround.tsx`, and `src/components/buildings/ArchitecturalKit.tsx` with CVE's normal-mapped PBR materials (`normalScale = 0.32–0.40`), raised 3D road kerbs (`#dedbd1`), double-yellow centerlines & dashed lane dividers on `太子湖北路` & `东风大道`, 3D vertical facade pilasters, entrance glass bays with projecting awnings (`#476f68`), and exterior AC condenser units (`空调外机`).
+  3. Upgraded parked cars in `src/components/AthleticsZone.tsx` to CVE's multi-part 3D cars (body, tinted glass cabin, roof panel, 4 rubber tires + silver rims, headlights, taillights).
+  4. Built `src/components/CveStreetscape.tsx` adding gooseneck cantilever street lamps, raised masonry planters with clustered shrubs, wooden campus benches, pedestrian bollards, and a distant muted urban skyline outside the campus boundary.
+  5. Adopted CVE's warm directional sun (`#fff2db`) + high-bounce hemisphere lighting (`#e7f4fa` / `#728271`) in `EnvironmentEffects.tsx`.
+- **How to Access Phase 10**:
+  - **Live Website**: `https://michaelxpm.github.io/2611-WuhanForeignLanguageSchool/`
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-10`
+  - **Local**: `git checkout phase-10 && npm.cmd install && npm.cmd run dev` (or `git checkout main`)
+- **Highlight**: Full CVE visual quality transfer—tactile PBR normal maps, 3D facade relief (pilasters, canopies, AC units), raised road kerbs & lane markings, multi-part 3D cars, planters/benches/lamps, and surrounding urban skyline.
+- **Validation Checklist**:
+  - [ ] Zoom in on building facades to verify 3D pilasters, entrance canopies, AC condenser units, and stucco normal-map relief.
+  - [ ] Inspect campus avenues, `太子湖北路`, and the parking lot to verify raised stone kerbs, lane markings, gooseneck lamps, stone planters, benches, and multi-wheel 3D cars.
+
+
 
 
 

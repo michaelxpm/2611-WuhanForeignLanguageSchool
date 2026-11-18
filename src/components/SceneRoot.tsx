@@ -8,6 +8,7 @@ import { RoadNode, TreeItem } from '../data/editableDefaults';
 import { AthleticsZone } from './AthleticsZone';
 import { CampusFoliage, TreeDisplayStyle } from './CampusFoliage';
 import { CampusGround } from './CampusGround';
+import { CveStreetscape } from './CveStreetscape';
 import { EnvironmentEffects } from './EnvironmentEffects';
 import { GirlWalker, MobileJoystickInput, WalkerCharacter } from './GirlWalker';
 import { HeroBuildings } from './buildings/HeroBuildings';
@@ -334,6 +335,9 @@ export function SceneRoot({
         onSelect={(b) => onSelectBuilding(b)}
         onStartDrag={handleStartDrag}
       />
+
+      {/* CVE Streetscape Props (Gooseneck Lamps, Stone Planters, Benches, Bollards & Distant Skyline) */}
+      <CveStreetscape />
 
       {/* Instanced Foliage (GLTF Oak/Maple/LowPoly + draggable in Edit Mode) */}
       <CampusFoliage

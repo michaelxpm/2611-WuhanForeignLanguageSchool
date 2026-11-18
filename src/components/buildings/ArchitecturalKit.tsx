@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { getFacadeWindowTexture, getRoofRibTexture } from '../../materials/proceduralTextures';
+import {
+  getCveNormalMap,
+  getFacadeWindowTexture,
+  getRoofRibTexture,
+} from '../../materials/proceduralTextures';
 
 interface WingBlockProps {
   position?: [number, number, number];
@@ -41,6 +45,8 @@ export function WingBlock({
     () => getFacadeWindowTexture(wallColor, stories, windowCols, archedTop),
     [wallColor, stories, windowCols, archedTop]
   );
+  const stuccoNormal = useMemo(() => getCveNormalMap('stucco', 4, 2), []);
+  const concreteNormal = useMemo(() => getCveNormalMap('concrete', 6, 2), []);
   const roofTex = useMemo(() => getRoofRibTexture(roofColor), [roofColor]);
 
   const gableGeometry = useMemo(() => {
@@ -65,28 +71,89 @@ export function WingBlock({
   }, [width, depth, roofHeight, roofType, eaveOverhang]);
 
   const storyHeight = height / stories;
+  const pilasterCount = Math.max(2, Math.floor(width / 8));
 
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      {/* Base plinth */}
-      <mesh position={[0, 0.3, 0]} castShadow receiveShadow>
-        <boxGeometry args={[width + 0.4, 0.6, depth + 0.4]} />
-        <meshStandardMaterial color="#94a3b8" roughness={0.88} />
+      {/* Base stone plinth with CVE concrete normal map */}
+      <mesh position={[0, 0.35, 0]} castShadow receiveShadow>
+        <boxGeometry args={[width + 0.5, 0.7, depth + 0.5]} />
+        <meshStandardMaterial
+          color="#b8b7aa"
+          normalMap={concreteNormal}
+          normalScale={new THREE.Vector2(0.35, 0.35)}
+          roughness={0.86}
+        />
       </mesh>
 
-      {/* Main articulated facade body */}
+      {/* Main articulated facade body with CVE stucco normal relief */}
       <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[width, height, depth]} />
-        <meshStandardMaterial map={facadeTex} roughness={0.62} metalness={0.08} />
+        <meshStandardMaterial
+          map={facadeTex}
+          normalMap={stuccoNormal}
+          normalScale={new THREE.Vector2(0.32, 0.32)}
+          roughness={0.65}
+          metalness={0.08}
+        />
       </mesh>
 
-      {/* Protruding concrete floor-slab stringcourses */}
+      {/* 3D Vertical Pilasters / Mullion Fins along Front & Back Facades */}
+      {Array.from({ length: pilasterCount + 1 }, (_, i) => {
+        const px = -width / 2 + (i / pilasterCount) * width;
+        return (
+          <mesh key={`pil-${i}`} position={[px, height / 2, 0]} castShadow>
+            <boxGeometry args={[0.28, height - 0.2, depth + 0.28]} />
+            <meshStandardMaterial color="#dde3ea" roughness={0.78} />
+          </mesh>
+        );
+      })}
+
+      {/* Protruding concrete floor-slab stringcourses & window sunshade ledges */}
       {Array.from({ length: stories }, (_, i) => (
         <mesh key={i} position={[0, (i + 1) * storyHeight, 0]} castShadow receiveShadow>
-          <boxGeometry args={[width + 0.35, 0.24, depth + 0.35]} />
-          <meshStandardMaterial color="#e2e8f0" roughness={0.82} />
+          <boxGeometry args={[width + 0.42, 0.26, depth + 0.42]} />
+          <meshStandardMaterial
+            color="#e2e8f0"
+            normalMap={concreteNormal}
+            normalScale={new THREE.Vector2(0.25, 0.25)}
+            roughness={0.8}
+          />
         </mesh>
       ))}
+
+      {/* CVE Ground-Floor Entrance Canopy & Glass Lobby Bay (for primary wings) */}
+      {width >= 18 && (
+        <group position={[0, 0, depth / 2]}>
+          <mesh position={[0, 1.7, 0.08]}>
+            <boxGeometry args={[4.4, 3.2, 0.14]} />
+            <meshStandardMaterial color="#2b4c59" roughness={0.18} metalness={0.5} />
+          </mesh>
+          <mesh position={[0, 3.45, 0.75]} castShadow>
+            <boxGeometry args={[5.2, 0.22, 1.5]} />
+            <meshStandardMaterial color="#476f68" roughness={0.6} />
+          </mesh>
+        </group>
+      )}
+
+      {/* CVE Exterior AC Condenser Units (空调外机) on upper stories */}
+      {stories >= 3 &&
+        Array.from({ length: Math.min(4, Math.floor(width / 10)) }, (_, ci) => {
+          const cx = -width * 0.32 + ci * (width * 0.22);
+          const cy = storyHeight * 1.6 + (ci % 2) * storyHeight;
+          return (
+            <group key={`ac-${ci}`} position={[cx, cy, -depth / 2 - 0.22]}>
+              <mesh castShadow>
+                <boxGeometry args={[0.92, 0.68, 0.42]} />
+                <meshStandardMaterial color="#dedbd1" roughness={0.75} />
+              </mesh>
+              <mesh position={[0.15, 0, -0.22]}>
+                <cylinderGeometry args={[0.22, 0.22, 0.03, 12]} />
+                <meshStandardMaterial color="#25373b" roughness={0.8} />
+              </mesh>
+            </group>
+          );
+        })}
 
       {/* Roof */}
       {roofType === 'flat' ? (

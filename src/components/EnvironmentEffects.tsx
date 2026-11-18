@@ -37,12 +37,12 @@ export function EnvironmentEffects() {
         />
       </Environment>
 
-      <ambientLight intensity={0.52} />
-      <hemisphereLight args={['#e0f2fe', '#64748b', 0.68]} />
+      <ambientLight intensity={0.42} />
+      <hemisphereLight args={['#e7f4fa', '#728271', 1.15]} />
       <directionalLight
         position={sunPosition}
-        color="#fffdf8"
-        intensity={2.35}
+        color="#fff2db"
+        intensity={2.65}
         castShadow
         shadow-mapSize={[4096, 4096]}
         shadow-camera-left={-440}

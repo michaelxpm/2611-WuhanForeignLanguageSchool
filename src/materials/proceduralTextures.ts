@@ -1,6 +1,39 @@
 import * as THREE from 'three';
 
 const textureCache = new Map<string, THREE.CanvasTexture>();
+const fileTexCache = new Map<string, THREE.Texture>();
+const texLoader = new THREE.TextureLoader();
+
+export function getCveTexture(file: string, repeatX = 8, repeatY = 8, isColor = true): THREE.Texture {
+  const key = `cve-${file}-${repeatX}-${repeatY}`;
+  if (fileTexCache.has(key)) return fileTexCache.get(key)!;
+  const tex = texLoader.load(`./textures/${file}`);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(repeatX, repeatY);
+  tex.anisotropy = 8;
+  if (isColor) {
+    tex.colorSpace = THREE.SRGBColorSpace;
+  }
+  fileTexCache.set(key, tex);
+  return tex;
+}
+
+export function getCveNormalMap(
+  kind: 'asphalt' | 'brick' | 'concrete' | 'stucco',
+  repeatX = 8,
+  repeatY = 8
+): THREE.Texture {
+  return getCveTexture(`${kind}_normal.jpg`, repeatX, repeatY, false);
+}
+
+export function getCveColorMap(
+  kind: 'asphalt' | 'brick' | 'concrete' | 'stucco',
+  repeatX = 8,
+  repeatY = 8
+): THREE.Texture {
+  return getCveTexture(`${kind}_color.jpg`, repeatX, repeatY, true);
+}
 
 function makeCanvas(width: number, height: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
   const canvas = document.createElement('canvas');

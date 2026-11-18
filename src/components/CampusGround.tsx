@@ -4,10 +4,9 @@ import * as THREE from 'three';
 import { BuildingSpec, pxPos, pxToWorld } from '../data/campusLayout';
 import { ROAD_EDGES, RoadNode } from '../data/editableDefaults';
 import {
-  getAsphaltTexture,
-  getBrickWalkwayTexture,
+  getCveColorMap,
+  getCveNormalMap,
   getGrassTexture,
-  getStonePavingTexture,
   getVerticalPlaqueTexture,
   getWaterNormalTexture,
 } from '../materials/proceduralTextures';
@@ -37,9 +36,20 @@ interface RoadSegmentProps {
   y?: number;
   color?: string;
   map?: THREE.Texture;
+  normalMap?: THREE.Texture;
+  withKerbs?: boolean;
 }
 
-function RoadSegment({ from, to, width, y = 0.08, color = '#d6cfc4', map }: RoadSegmentProps) {
+function RoadSegment({
+  from,
+  to,
+  width,
+  y = 0.08,
+  color = '#d6cfc4',
+  map,
+  normalMap,
+  withKerbs = false,
+}: RoadSegmentProps) {
   const dx = to[0] - from[0];
   const dz = to[1] - from[1];
   const length = Math.hypot(dx, dz);
@@ -48,10 +58,30 @@ function RoadSegment({ from, to, width, y = 0.08, color = '#d6cfc4', map }: Road
   const midZ = (from[1] + to[1]) / 2;
 
   return (
-    <mesh position={[midX, y, midZ]} rotation={[0, -angle, 0]} receiveShadow>
-      <boxGeometry args={[length + width * 0.25, 0.04, width]} />
-      <meshStandardMaterial map={map} color={color} roughness={0.86} />
-    </mesh>
+    <group position={[midX, y, midZ]} rotation={[0, -angle, 0]}>
+      <mesh receiveShadow>
+        <boxGeometry args={[length + width * 0.25, 0.045, width]} />
+        <meshStandardMaterial
+          map={map}
+          normalMap={normalMap}
+          normalScale={new THREE.Vector2(0.35, 0.35)}
+          color={color}
+          roughness={0.88}
+        />
+      </mesh>
+      {withKerbs && (
+        <>
+          <mesh position={[0, 0.04, -width / 2 - 0.16]} receiveShadow>
+            <boxGeometry args={[length, 0.09, 0.32]} />
+            <meshStandardMaterial color="#dedbd1" roughness={0.82} />
+          </mesh>
+          <mesh position={[0, 0.04, width / 2 + 0.16]} receiveShadow>
+            <boxGeometry args={[length, 0.09, 0.32]} />
+            <meshStandardMaterial color="#dedbd1" roughness={0.82} />
+          </mesh>
+        </>
+      )}
+    </group>
   );
 }
 
@@ -69,10 +99,13 @@ export function CampusGround({
     roadNodes.forEach((n) => m.set(n.id, n));
     return m;
   }, [roadNodes]);
-  const stoneTex = useMemo(() => getStonePavingTexture(20, 20), []);
-  const brickTex = useMemo(() => getBrickWalkwayTexture(14, 4), []);
+  const stoneTex = useMemo(() => getCveColorMap('concrete', 14, 14), []);
+  const stoneNormal = useMemo(() => getCveNormalMap('concrete', 14, 14), []);
+  const brickTex = useMemo(() => getCveColorMap('brick', 12, 4), []);
+  const brickNormal = useMemo(() => getCveNormalMap('brick', 12, 4), []);
   const grassTex = useMemo(() => getGrassTexture(36, 36), []);
-  const asphaltTex = useMemo(() => getAsphaltTexture(18, 2), []);
+  const asphaltTex = useMemo(() => getCveColorMap('asphalt', 18, 2), []);
+  const asphaltNormal = useMemo(() => getCveNormalMap('asphalt', 18, 2), []);
   const waterNormalTex = useMemo(() => getWaterNormalTexture(), []);
   const plaqueLeft = useMemo(() => getVerticalPlaqueTexture('武汉外国语学校'), []);
   const plaqueRight = useMemo(() => getVerticalPlaqueTexture('武汉实验外国语学校'), []);
@@ -227,7 +260,13 @@ export function CampusGround({
             receiveShadow
           >
             <ringGeometry args={[r - 1.1, r + 1.1, 48, 1, thetaStart, thetaLength]} />
-            <meshStandardMaterial map={brickTex} color="#b8745c" roughness={0.85} />
+            <meshStandardMaterial
+              map={brickTex}
+              normalMap={brickNormal}
+              normalScale={new THREE.Vector2(0.35, 0.35)}
+              color="#c4826a"
+              roughness={0.85}
+            />
           </mesh>
         ))}
 
@@ -241,8 +280,9 @@ export function CampusGround({
               to={endPt}
               width={2.6}
               y={0.12}
-              color="#b8745c"
+              color="#c4826a"
               map={brickTex}
+              normalMap={brickNormal}
             />
           );
         })}
@@ -258,7 +298,13 @@ export function CampusGround({
         {/* Grand stone-paved square (px=604..692, py=505..595 -> center px=648, py=550) */}
         <mesh position={pxPos(648, 550, 0.07)} receiveShadow>
           <boxGeometry args={[58, 0.04, 58]} />
-          <meshStandardMaterial map={stoneTex} color="#d2cbc0" roughness={0.84} />
+          <meshStandardMaterial
+            map={stoneTex}
+            normalMap={stoneNormal}
+            normalScale={new THREE.Vector2(0.35, 0.35)}
+            color="#d8d4c8"
+            roughness={0.86}
+          />
         </mesh>
 
         {/* Formal Circular Fountain Parterre (px=558, py=580 -> cleanly East of the 8 courts) */}
@@ -300,7 +346,7 @@ export function CampusGround({
       {/* Southern vertical path in 寻真园 */}
       <RoadSegment from={pxToWorld(602, 495)} to={pxToWorld(602, 544)} width={3.0} y={0.08} color="#e2ddd5" map={stoneTex} />
 
-      {/* ==================== DYNAMIC EDITABLE ROAD NETWORK ==================== */}
+      {/* ==================== DYNAMIC EDITABLE ROAD NETWORK (with CVE PBR Normal Map & Raised Kerbs) ==================== */}
       <group>
         {ROAD_EDGES.map((edge, i) => {
           const a = nodeMap.get(edge.from);
@@ -315,6 +361,8 @@ export function CampusGround({
               y={edge.y ?? 0.08}
               color={edge.color ?? '#d6cfc4'}
               map={stoneTex}
+              normalMap={stoneNormal}
+              withKerbs={true}
             />
           );
         })}
@@ -343,17 +391,68 @@ export function CampusGround({
             );
           })}
 
-        {/* 太子湖北路 (Taizihu N Rd - South Boundary, py=625) */}
-        <mesh position={pxPos(550, 628, 0.04)} receiveShadow>
-          <boxGeometry args={[720, 0.05, 22]} />
-          <meshStandardMaterial map={asphaltTex} color="#474d57" roughness={0.88} />
-        </mesh>
+        {/* 太子湖北路 (Taizihu N Rd - South Boundary, py=625) with CVE Asphalt PBR & Lane Markings */}
+        <group position={pxPos(550, 628, 0.04)}>
+          <mesh receiveShadow>
+            <boxGeometry args={[720, 0.05, 22]} />
+            <meshStandardMaterial
+              map={asphaltTex}
+              normalMap={asphaltNormal}
+              normalScale={new THREE.Vector2(0.4, 0.4)}
+              color="#585c62"
+              roughness={0.94}
+            />
+          </mesh>
+          {/* Raised road kerbs */}
+          <mesh position={[0, 0.06, -11.4]} receiveShadow>
+            <boxGeometry args={[720, 0.14, 0.8]} />
+            <meshStandardMaterial color="#dedbd1" roughness={0.82} />
+          </mesh>
+          <mesh position={[0, 0.06, 11.4]} receiveShadow>
+            <boxGeometry args={[720, 0.14, 0.8]} />
+            <meshStandardMaterial color="#dedbd1" roughness={0.82} />
+          </mesh>
+          {/* Double yellow centerline */}
+          <mesh position={[0, 0.032, -0.35]}>
+            <boxGeometry args={[710, 0.01, 0.16]} />
+            <meshStandardMaterial color="#e5c971" roughness={0.8} />
+          </mesh>
+          <mesh position={[0, 0.032, 0.35]}>
+            <boxGeometry args={[710, 0.01, 0.16]} />
+            <meshStandardMaterial color="#e5c971" roughness={0.8} />
+          </mesh>
+          {/* Dashed white lane dividers */}
+          {Array.from({ length: 44 }, (_, li) => (
+            <group key={li} position={[-330 + li * 15, 0.032, 0]}>
+              <mesh position={[0, 0, -5.2]}>
+                <boxGeometry args={[5.5, 0.01, 0.16]} />
+                <meshStandardMaterial color="#eee9d9" roughness={0.8} />
+              </mesh>
+              <mesh position={[0, 0, 5.2]}>
+                <boxGeometry args={[5.5, 0.01, 0.16]} />
+                <meshStandardMaterial color="#eee9d9" roughness={0.8} />
+              </mesh>
+            </group>
+          ))}
+        </group>
 
-        {/* 东风大道 (Dongfeng Blvd - West Boundary, px=95) */}
-        <mesh position={pxPos(95, 340, 0.04)} receiveShadow>
-          <boxGeometry args={[24, 0.05, 580]} />
-          <meshStandardMaterial map={asphaltTex} color="#474d57" roughness={0.88} />
-        </mesh>
+        {/* 东风大道 (Dongfeng Blvd - West Boundary, px=95) with CVE Asphalt PBR & Centerline */}
+        <group position={pxPos(95, 340, 0.04)}>
+          <mesh receiveShadow>
+            <boxGeometry args={[24, 0.05, 580]} />
+            <meshStandardMaterial
+              map={asphaltTex}
+              normalMap={asphaltNormal}
+              normalScale={new THREE.Vector2(0.4, 0.4)}
+              color="#585c62"
+              roughness={0.94}
+            />
+          </mesh>
+          <mesh position={[0, 0.032, 0]}>
+            <boxGeometry args={[0.22, 0.01, 570]} />
+            <meshStandardMaterial color="#e5c971" roughness={0.8} />
+          </mesh>
+        </group>
 
         {/* 东风大道高架桥 (Dongfeng Blvd Elevated Viaduct, px=35) */}
         <group position={pxPos(35, 340, 0)}>

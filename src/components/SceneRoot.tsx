@@ -10,6 +10,7 @@ import { CampusFoliage, TreeDisplayStyle } from './CampusFoliage';
 import { CampusGround } from './CampusGround';
 import { CveStreetscape } from './CveStreetscape';
 import { EnvironmentEffects } from './EnvironmentEffects';
+import { ExternalTraffic } from './ExternalTraffic';
 import { GirlWalker, MobileJoystickInput, WalkerCharacter } from './GirlWalker';
 import { HeroBuildings } from './buildings/HeroBuildings';
 import { NorthZoneBuildings } from './buildings/NorthZoneBuildings';
@@ -336,8 +337,9 @@ export function SceneRoot({
         onStartDrag={handleStartDrag}
       />
 
-      {/* CVE Streetscape Props (Gooseneck Lamps, Stone Planters, Benches, Bollards & Distant Skyline) */}
+      {/* CVE Streetscape Props & Real GLTF Moving Cars/Buses on 太子湖北路 & 东风大道 */}
       <CveStreetscape />
+      <ExternalTraffic />
 
       {/* Instanced Foliage (GLTF Oak/Maple/LowPoly + draggable in Edit Mode) */}
       <CampusFoliage

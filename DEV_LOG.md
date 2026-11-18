@@ -252,6 +252,26 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Zoom in on building facades to verify 3D pilasters, entrance canopies, AC condenser units, and stucco normal-map relief.
   - [ ] Inspect campus avenues, `太子湖北路`, and the parking lot to verify raised stone kerbs, lane markings, gooseneck lamps, stone planters, benches, and multi-wheel 3D cars.
 
+---
+
+## Phase 11 — Realistic External Roads, Real GLTF Car/Bus Traffic & Full CVE Sky/Lighting
+- **Status**: Completed
+- **Git Tag**: `phase-11` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-11))
+- **Working Steps**:
+  1. Extracted real car (`volvo_v50`) and bus (`city_bus`, `isuzu_erga_mio_bus`) GLTF models from `D:\coding\models_more` into `public/models/`.
+  2. Built `src/components/ExternalTraffic.tsx` with auto-normalized scale/orientation (`Box3`) and continuous multi-lane moving traffic along `太子湖北路` and `东风大道`.
+  3. Upgraded `太子湖北路`, `东风大道`, and their SW intersection in `src/components/CampusGround.tsx` with CVE's 5.4 m concrete sidewalks + raised stone kerbs, zebra crosswalks, traffic signals, and a CVE glass/canopy bus stop (`公交站台`).
+  4. Deployed CVE's full sky & lighting rig in `src/components/EnvironmentEffects.tsx` (`#a7c7d6` sky background, `HemisphereLight` `#e7f4fa`/`#728271` intensity `1.75`, warm golden-afternoon `DirectionalLight` `#fff0d5` intensity `2.85`, `toneMappingExposure = 1.18`, and 3-plane `<Environment>` IBL).
+- **How to Access Phase 11**:
+  - **Live Website**: `https://michaelxpm.github.io/2611-WuhanForeignLanguageSchool/`
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-11`
+  - **Local**: `git checkout phase-11 && npm.cmd install && npm.cmd run dev` (or `git checkout main`)
+- **Highlight**: Living external boulevards with real GLTF buses and cars, sidewalks, crosswalks, bus stop, traffic signals, and full CVE atmospheric lighting.
+- **Validation Checklist**:
+  - [ ] Look along `太子湖北路` and `东风大道` to see real Volvo V50 cars, City Buses, and Isuzu Erga Mio buses driving along the lanes, plus the bus stop, sidewalks, crosswalks, and traffic lights.
+  - [ ] Check the sky, shadow bounce brightness, and glass/lake reflections under the full CVE lighting rig.
+
+
 
 
 

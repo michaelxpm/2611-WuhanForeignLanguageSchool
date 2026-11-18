@@ -391,7 +391,7 @@ export function CampusGround({
             );
           })}
 
-        {/* 太子湖北路 (Taizihu N Rd - South Boundary, py=625) with CVE Asphalt PBR & Lane Markings */}
+        {/* 太子湖北路 (Taizihu N Rd - South Boundary, py=625) with CVE Asphalt PBR, Sidewalks & Lane Markings */}
         <group position={pxPos(550, 628, 0.04)}>
           <mesh receiveShadow>
             <boxGeometry args={[720, 0.05, 22]} />
@@ -399,19 +399,29 @@ export function CampusGround({
               map={asphaltTex}
               normalMap={asphaltNormal}
               normalScale={new THREE.Vector2(0.4, 0.4)}
-              color="#585c62"
+              color="#52565c"
               roughness={0.94}
             />
           </mesh>
-          {/* Raised road kerbs */}
-          <mesh position={[0, 0.06, -11.4]} receiveShadow>
-            <boxGeometry args={[720, 0.14, 0.8]} />
-            <meshStandardMaterial color="#dedbd1" roughness={0.82} />
-          </mesh>
-          <mesh position={[0, 0.06, 11.4]} receiveShadow>
-            <boxGeometry args={[720, 0.14, 0.8]} />
-            <meshStandardMaterial color="#dedbd1" roughness={0.82} />
-          </mesh>
+          {/* Concrete Sidewalks & Raised Road Kerbs on both sides */}
+          {[-1, 1].map((s) => (
+            <group key={s}>
+              <mesh position={[0, 0.06, s * 11.4]} receiveShadow>
+                <boxGeometry args={[720, 0.14, 0.8]} />
+                <meshStandardMaterial color="#dedbd1" roughness={0.82} />
+              </mesh>
+              <mesh position={[0, 0.05, s * 14.5]} receiveShadow>
+                <boxGeometry args={[720, 0.12, 5.4]} />
+                <meshStandardMaterial
+                  map={stoneTex}
+                  normalMap={stoneNormal}
+                  normalScale={new THREE.Vector2(0.35, 0.35)}
+                  color="#c9c6b9"
+                  roughness={0.88}
+                />
+              </mesh>
+            </group>
+          ))}
           {/* Double yellow centerline */}
           <mesh position={[0, 0.032, -0.35]}>
             <boxGeometry args={[710, 0.01, 0.16]} />
@@ -434,9 +444,37 @@ export function CampusGround({
               </mesh>
             </group>
           ))}
+
+          {/* CVE Bus Stop along 太子湖北路 (near Main Gate / Courts) */}
+          <group position={[-125, 0.12, -13.5]}>
+            <mesh position={[0, 3.1, 0]} castShadow>
+              <boxGeometry args={[10, 0.22, 3.2]} />
+              <meshStandardMaterial color="#687879" roughness={0.65} />
+            </mesh>
+            {[-4.4, 4.4].map((dx, i) => (
+              <group key={i} position={[dx, 0, 0]}>
+                <mesh position={[0, 1.55, -0.9]} castShadow>
+                  <cylinderGeometry args={[0.09, 0.1, 3.1, 8]} />
+                  <meshStandardMaterial color="#4a5556" roughness={0.45} metalness={0.6} />
+                </mesh>
+                <mesh position={[0, 1.85, 1.1]}>
+                  <boxGeometry args={[0.12, 2.3, 0.08]} />
+                  <meshStandardMaterial color="#638994" roughness={0.18} metalness={0.48} />
+                </mesh>
+              </group>
+            ))}
+            <mesh position={[0, 1.3, -0.9]} castShadow>
+              <boxGeometry args={[6, 0.14, 0.65]} />
+              <meshStandardMaterial color="#8c6950" roughness={0.8} />
+            </mesh>
+            <mesh position={[-4.4, 3.45, 0]}>
+              <boxGeometry args={[0.8, 0.4, 2.0]} />
+              <meshStandardMaterial color="#75936a" roughness={0.6} />
+            </mesh>
+          </group>
         </group>
 
-        {/* 东风大道 (Dongfeng Blvd - West Boundary, px=95) with CVE Asphalt PBR & Centerline */}
+        {/* 东风大道 (Dongfeng Blvd - West Boundary, px=95) with CVE Asphalt PBR, Sidewalks & Centerline */}
         <group position={pxPos(95, 340, 0.04)}>
           <mesh receiveShadow>
             <boxGeometry args={[24, 0.05, 580]} />
@@ -444,14 +482,91 @@ export function CampusGround({
               map={asphaltTex}
               normalMap={asphaltNormal}
               normalScale={new THREE.Vector2(0.4, 0.4)}
-              color="#585c62"
+              color="#52565c"
               roughness={0.94}
             />
           </mesh>
-          <mesh position={[0, 0.032, 0]}>
-            <boxGeometry args={[0.22, 0.01, 570]} />
+          {[-1, 1].map((s) => (
+            <group key={s}>
+              <mesh position={[s * 12.4, 0.06, 0]} receiveShadow>
+                <boxGeometry args={[0.8, 0.14, 580]} />
+                <meshStandardMaterial color="#dedbd1" roughness={0.82} />
+              </mesh>
+              <mesh position={[s * 15.5, 0.05, 0]} receiveShadow>
+                <boxGeometry args={[5.4, 0.12, 580]} />
+                <meshStandardMaterial
+                  map={stoneTex}
+                  normalMap={stoneNormal}
+                  normalScale={new THREE.Vector2(0.35, 0.35)}
+                  color="#c9c6b9"
+                  roughness={0.88}
+                />
+              </mesh>
+            </group>
+          ))}
+          <mesh position={[-0.35, 0.032, 0]}>
+            <boxGeometry args={[0.16, 0.01, 570]} />
             <meshStandardMaterial color="#e5c971" roughness={0.8} />
           </mesh>
+          <mesh position={[0.35, 0.032, 0]}>
+            <boxGeometry args={[0.16, 0.01, 570]} />
+            <meshStandardMaterial color="#e5c971" roughness={0.8} />
+          </mesh>
+          {/* Dashed white lane dividers */}
+          {Array.from({ length: 36 }, (_, li) => (
+            <group key={li} position={[0, 0.032, -260 + li * 15]}>
+              <mesh position={[-5.8, 0, 0]}>
+                <boxGeometry args={[0.16, 0.01, 5.5]} />
+                <meshStandardMaterial color="#eee9d9" roughness={0.8} />
+              </mesh>
+              <mesh position={[5.8, 0, 0]}>
+                <boxGeometry args={[0.16, 0.01, 5.5]} />
+                <meshStandardMaterial color="#eee9d9" roughness={0.8} />
+              </mesh>
+            </group>
+          ))}
+        </group>
+
+        {/* SW Intersection Crosswalks & Traffic Signals (太子湖北路 × 东风大道) */}
+        <group position={pxPos(95, 628, 0.08)}>
+          {[-14, 14].map((dz) =>
+            [-9, -6, -3, 0, 3, 6, 9].map((dx, i) => (
+              <mesh key={`cw-z-${dz}-${i}`} position={[dx, 0, dz]}>
+                <boxGeometry args={[1.4, 0.02, 3.8]} />
+                <meshStandardMaterial color="#eee9d9" roughness={0.8} />
+              </mesh>
+            ))
+          )}
+          {[-15, 15].map((dx) =>
+            [-8, -5, -2, 1, 4, 7].map((dz, i) => (
+              <mesh key={`cw-x-${dx}-${i}`} position={[dx, 0, dz]}>
+                <boxGeometry args={[3.8, 0.02, 1.3]} />
+                <meshStandardMaterial color="#eee9d9" roughness={0.8} />
+              </mesh>
+            ))
+          )}
+          {/* 2 Traffic Signal Poles */}
+          {[
+            [14, -13, 0],
+            [-14, 13, Math.PI],
+          ].map(([sx, sz, srot], si) => (
+            <group key={si} position={[sx, 0, sz]} rotation={[0, srot, 0]}>
+              <mesh position={[0, 3.2, 0]} castShadow>
+                <cylinderGeometry args={[0.11, 0.13, 6.4, 8]} />
+                <meshStandardMaterial color="#4a5556" roughness={0.45} metalness={0.6} />
+              </mesh>
+              <mesh position={[0, 6.2, 0]} castShadow>
+                <boxGeometry args={[0.6, 1.65, 0.55]} />
+                <meshStandardMaterial color="#25373b" roughness={0.7} />
+              </mesh>
+              {['#b44f46', '#e9b04f', '#4d9b69'].map((col, li) => (
+                <mesh key={li} position={[0, 6.65 - li * 0.48, 0.3]}>
+                  <sphereGeometry args={[0.17, 10, 10]} />
+                  <meshStandardMaterial color={col} emissive={col} emissiveIntensity={0.7} />
+                </mesh>
+              ))}
+            </group>
+          ))}
         </group>
 
         {/* 东风大道高架桥 (Dongfeng Blvd Elevated Viaduct, px=35) */}

@@ -10,7 +10,7 @@ import { CampusFoliage, TreeDisplayStyle } from './CampusFoliage';
 import { CampusGround } from './CampusGround';
 import { CveStreetscape } from './CveStreetscape';
 import { EnvironmentEffects } from './EnvironmentEffects';
-import { ExternalTraffic } from './ExternalTraffic';
+import { ExternalTraffic, TrafficConfig } from './ExternalTraffic';
 import { GirlWalker, MobileJoystickInput, WalkerCharacter } from './GirlWalker';
 import { HeroBuildings } from './buildings/HeroBuildings';
 import { NorthZoneBuildings } from './buildings/NorthZoneBuildings';
@@ -153,6 +153,7 @@ interface SceneRootProps {
   cameraMode: CameraMode;
   walkerCharacter: WalkerCharacter;
   mobileInputRef: React.MutableRefObject<MobileJoystickInput>;
+  trafficConfig: TrafficConfig;
   autoOrbit: boolean;
   editMode: boolean;
   clickToMove: boolean;
@@ -183,6 +184,7 @@ export function SceneRoot({
   cameraMode,
   walkerCharacter,
   mobileInputRef,
+  trafficConfig,
   autoOrbit,
   editMode,
   clickToMove,
@@ -339,7 +341,7 @@ export function SceneRoot({
 
       {/* CVE Streetscape Props & Real GLTF Moving Cars/Buses on 太子湖北路 & 东风大道 */}
       <CveStreetscape />
-      <ExternalTraffic />
+      <ExternalTraffic config={trafficConfig} />
 
       {/* Instanced Foliage (GLTF Oak/Maple/LowPoly + draggable in Edit Mode) */}
       <CampusFoliage

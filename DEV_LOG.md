@@ -271,6 +271,25 @@ This log tracks every development phase. Each completed phase is committed to `m
   - [ ] Look along `太子湖北路` and `东风大道` to see real Volvo V50 cars, City Buses, and Isuzu Erga Mio buses driving along the lanes, plus the bus stop, sidewalks, crosswalks, and traffic lights.
   - [ ] Check the sky, shadow bounce brightness, and glass/lake reflections under the full CVE lighting rig.
 
+---
+
+## Phase 12 — Realistic Off-Campus Buildings & Expandable Traffic Control Panel
+- **Status**: Completed
+- **Git Tag**: `phase-12` ([View on GitHub](https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-12))
+- **Working Steps**:
+  1. Removed the plain grey distant boxes in `CveStreetscape.tsx` that overlapped `东风大道` & `东风大道高架桥`, and replaced them with satellite-aligned, articulated `WingBlock` off-campus neighborhoods: `新民花园` terracotta-roofed villas & blue-roofed commercial strip south of `太子湖北路`, `索菲特 / 奥林花园` mid-rise towers, `金桥·太子湖1号` diagonal apartment blocks NW of the stadium, and high-rise towers cleanly west of `东风大道高架桥` (`X < -535`).
+  2. Extended `ExternalTraffic.tsx` with `TrafficConfig` (`paused`, `speedMultiplier`, `density`, `filter`) supporting up to 16 live GLTF vehicles.
+  3. Added an expandable **`车辆控制` (Traffic Control)** panel in `App.tsx` allowing users to pause/resume traffic, adjust speed (`0.2×–3.0×`), adjust vehicle count (`0–16`), and filter by vehicle type (`全部 / 仅公交 / 仅轿车`).
+- **How to Access Phase 12**:
+  - **Live Website**: `https://michaelxpm.github.io/2611-WuhanForeignLanguageSchool/`
+  - **GitHub**: `https://github.com/michaelxpm/2611-WuhanForeignLanguageSchool/tree/phase-12`
+  - **Local**: `git checkout phase-12 && npm.cmd install && npm.cmd run dev` (or `git checkout main`)
+- **Highlight**: Realistic articulated off-campus neighborhoods matching the satellite map with zero road/viaduct overlap, plus a live expandable traffic control panel.
+- **Validation Checklist**:
+  - [ ] Inspect `东风大道` and `东风大道高架桥`: verify zero buildings on the road/viaduct, with apartment towers cleanly behind the viaduct, `金桥·太子湖1号` NW of the stadium, and `新民花园` terracotta villas south of `太子湖北路`.
+  - [ ] Click `车辆控制` in the top bar to test pausing/resuming, speed slider, vehicle count slider, and `全部 / 仅公交 / 仅轿车` filter.
+
+
 
 
 

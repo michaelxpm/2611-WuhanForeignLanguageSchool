@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { pxToWorld } from '../data/campusLayout';
+import { WingBlock } from './buildings/ArchitecturalKit';
 
 function StreetLamp({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
   return (
@@ -67,7 +68,6 @@ function CampusBench({ position, rotationY = 0 }: { position: [number, number, n
 }
 
 export function CveStreetscape() {
-  // Street lamps along main pedestrian avenue & roundabout
   const lamps = useMemo(() => {
     const list: { pos: [number, number, number]; rot: number }[] = [];
     for (let px = 225; px <= 585; px += 45) {
@@ -83,27 +83,6 @@ export function CveStreetscape() {
     return list;
   }, []);
 
-  // Distant muted urban context skyline (across Taizihu N Rd & Dongfeng Blvd)
-  const distantBuildings = useMemo(() => {
-    const blocks: { x: number; z: number; w: number; d: number; h: number; color: string }[] = [];
-    const palette = ['#94a7a6', '#9aa9a4', '#a8b0a9', '#8f9e9d'];
-    // South of Taizihu N Rd (Z = 185..255)
-    for (let i = 0; i < 16; i++) {
-      const x = -340 + i * 32;
-      const z = 195 + (i % 3) * 22;
-      const h = 18 + ((i * 13) % 26);
-      blocks.push({ x, z, w: 22, d: 16, h, color: palette[i % palette.length] });
-    }
-    // West of Dongfeng Blvd (X = -465..-430)
-    for (let i = 0; i < 10; i++) {
-      const z = -220 + i * 38;
-      const x = -445 - (i % 2) * 24;
-      const h = 24 + ((i * 17) % 34);
-      blocks.push({ x, z, w: 18, d: 24, h, color: palette[(i + 1) % palette.length] });
-    }
-    return blocks;
-  }, []);
-
   return (
     <group>
       {/* Gooseneck Street Lamps */}
@@ -117,7 +96,7 @@ export function CveStreetscape() {
       <StonePlanter position={[-18, 0, -45]} width={5.5} />
       <StonePlanter position={[18, 0, -45]} width={5.5} />
 
-      {/* Campus Benches around Roundabout & Lakeside */}
+      {/* Campus Benches around Roundabout */}
       <CampusBench position={[-18, 0, 14]} rotationY={0.7} />
       <CampusBench position={[18, 0, 14]} rotationY={-0.7} />
       <CampusBench position={[-18, 0, -14]} rotationY={2.4} />
@@ -131,13 +110,129 @@ export function CveStreetscape() {
         </mesh>
       ))}
 
-      {/* Distant Muted Urban Context Skyline */}
-      {distantBuildings.map((b, i) => (
-        <mesh key={`dist-${i}`} position={[b.x, b.h / 2, b.z]} receiveShadow>
-          <boxGeometry args={[b.w, b.h, b.d]} />
-          <meshStandardMaterial color={b.color} roughness={0.88} />
-        </mesh>
-      ))}
+      {/* ==================== REALISTIC OFF-CAMPUS NEIGHBORHOODS (Matched to Satellite Map!) ==================== */}
+
+      {/* 1. South of 太子湖北路 (Z = 164..225): Blue-roofed commercial strip + 新民花园 terracotta villas */}
+      <group>
+        <WingBlock
+          position={[45, 0, 166]}
+          width={96}
+          height={9}
+          depth={16}
+          stories={2}
+          wallColor="#e2e8f0"
+          roofColor="#2563eb"
+          roofHeight={1.8}
+          windowCols={18}
+        />
+        {[-15, 35, 85].map((vx, i) => (
+          <WingBlock
+            key={`villa1-${i}`}
+            position={[vx, 0, 196]}
+            width={38}
+            height={14}
+            depth={14}
+            stories={4}
+            wallColor="#ede5d8"
+            roofColor="#a34836"
+            roofHeight={2.4}
+            windowCols={10}
+          />
+        ))}
+        {[-15, 35, 85].map((vx, i) => (
+          <WingBlock
+            key={`villa2-${i}`}
+            position={[vx, 0, 224]}
+            width={38}
+            height={14}
+            depth={14}
+            stories={4}
+            wallColor="#ede5d8"
+            roofColor="#a34836"
+            roofHeight={2.4}
+            windowCols={10}
+          />
+        ))}
+
+        {/* Sofitel / 奥林花园 Towers (South-West of 太子湖北路) */}
+        <WingBlock
+          position={[-135, 0, 178]}
+          width={48}
+          height={24}
+          depth={22}
+          stories={6}
+          wallColor="#dcd7cc"
+          roofColor="#475569"
+          roofType="flat"
+          windowCols={12}
+        />
+        <WingBlock
+          position={[-225, 0, 188]}
+          width={38}
+          height={28}
+          depth={20}
+          stories={7}
+          wallColor="#e2e8f0"
+          roofColor="#334155"
+          roofHeight={2.2}
+          windowCols={10}
+        />
+        <WingBlock
+          position={[-315, 0, 185]}
+          width={34}
+          height={22}
+          depth={18}
+          stories={6}
+          wallColor="#e5e0d5"
+          roofColor="#4b5563"
+          roofType="flat"
+          windowCols={9}
+        />
+      </group>
+
+      {/* 2. North-West across road (金桥·太子湖1号 angled residential blocks, cleanly North of Stadium) */}
+      <group>
+        {[
+          { x: -375, z: -95, rot: 0.55, h: 24, s: 6 },
+          { x: -315, z: -125, rot: 0.55, h: 26, s: 7 },
+          { x: -255, z: -155, rot: 0.55, h: 24, s: 6 },
+          { x: -345, z: -175, rot: 0.55, h: 28, s: 7 },
+          { x: -275, z: -205, rot: 0.55, h: 26, s: 7 },
+        ].map((b, i) => (
+          <WingBlock
+            key={`nw-res-${i}`}
+            position={[b.x, 0, b.z]}
+            rotationY={b.rot}
+            width={44}
+            height={b.h}
+            depth={15}
+            stories={b.s}
+            wallColor="#e2e8f0"
+            roofColor="#3b4452"
+            roofHeight={2.0}
+            windowCols={11}
+          />
+        ))}
+      </group>
+
+      {/* 3. West of 东风大道高架桥 (X = -530..-560, cleanly behind the viaduct at X = -478!) */}
+      <group>
+        {[-160, -75, 10, 95, 175].map((wz, i) => (
+          <WingBlock
+            key={`west-tower-${i}`}
+            position={[-535 - (i % 2) * 28, 0, wz]}
+            rotationY={Math.PI / 2}
+            width={42}
+            height={26 + (i % 3) * 6}
+            depth={18}
+            stories={7 + (i % 2)}
+            wallColor={i % 2 === 0 ? '#e5e7eb' : '#dfd9ce'}
+            roofColor="#334155"
+            roofHeight={2.0}
+            windowCols={11}
+          />
+        ))}
+      </group>
     </group>
   );
 }

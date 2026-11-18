@@ -3,6 +3,13 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
+export interface TrafficConfig {
+  paused: boolean;
+  speedMultiplier: number;
+  density: number; // 0..16
+  filter: 'all' | 'bus' | 'car';
+}
+
 interface VehicleBlueprint {
   scene: THREE.Group;
   scale: number;
@@ -27,7 +34,6 @@ function useNormalizedVehicle(url: string, targetLength: number): VehicleBluepri
     box.getSize(size);
     box.getCenter(center);
 
-    // Longest horizontal axis becomes vehicle length along +Z
     const isXLongest = size.x > size.z;
     const rawLen = Math.max(size.x, size.z, 0.001);
     const scale = targetLength / rawLen;
@@ -72,24 +78,32 @@ interface LaneVehicle {
 }
 
 const TRAFFIC_LANES: LaneVehicle[] = [
-  // 太子湖北路 (Westbound, top lanes Z = 123)
+  // 太子湖北路 (Westbound Z = 123 / 125.5)
   { kind: 'isuzu_bus', axis: 'x', dir: -1, laneCoord: 123, startOffset: -80, speed: 11, minBound: -480, maxBound: 220 },
   { kind: 'car', axis: 'x', dir: -1, laneCoord: 123, startOffset: -260, speed: 14, minBound: -480, maxBound: 220 },
   { kind: 'car', axis: 'x', dir: -1, laneCoord: 125.5, startOffset: 110, speed: 16, minBound: -480, maxBound: 220 },
+  { kind: 'car', axis: 'x', dir: -1, laneCoord: 125.5, startOffset: -370, speed: 15, minBound: -480, maxBound: 220 },
 
-  // 太子湖北路 (Eastbound, bottom lanes Z = 133)
+  // 太子湖北路 (Eastbound Z = 133 / 135.5)
   { kind: 'city_bus', axis: 'x', dir: 1, laneCoord: 133, startOffset: -210, speed: 10.5, minBound: -480, maxBound: 220 },
   { kind: 'car', axis: 'x', dir: 1, laneCoord: 133, startOffset: -390, speed: 15, minBound: -480, maxBound: 220 },
   { kind: 'car', axis: 'x', dir: 1, laneCoord: 135.5, startOffset: 20, speed: 17, minBound: -480, maxBound: 220 },
+  { kind: 'isuzu_bus', axis: 'x', dir: 1, laneCoord: 133, startOffset: 140, speed: 11.5, minBound: -480, maxBound: 220 },
 
-  // 东风大道 (Northbound & Southbound, X = -444 & -434)
+  // 东风大道 (Northbound X = -434)
   { kind: 'isuzu_bus', axis: 'z', dir: -1, laneCoord: -434, startOffset: 100, speed: 11, minBound: -330, maxBound: 220 },
   { kind: 'car', axis: 'z', dir: -1, laneCoord: -434, startOffset: -120, speed: 15, minBound: -330, maxBound: 220 },
+  { kind: 'car', axis: 'z', dir: -1, laneCoord: -431.5, startOffset: -20, speed: 16.5, minBound: -330, maxBound: 220 },
+  { kind: 'car', axis: 'z', dir: -1, laneCoord: -431.5, startOffset: -240, speed: 14, minBound: -330, maxBound: 220 },
+
+  // 东风大道 (Southbound X = -444)
   { kind: 'city_bus', axis: 'z', dir: 1, laneCoord: -444, startOffset: -190, speed: 11.5, minBound: -330, maxBound: 220 },
   { kind: 'car', axis: 'z', dir: 1, laneCoord: -444, startOffset: 40, speed: 16, minBound: -330, maxBound: 220 },
+  { kind: 'car', axis: 'z', dir: 1, laneCoord: -446.5, startOffset: -80, speed: 15.5, minBound: -330, maxBound: 220 },
+  { kind: 'car', axis: 'z', dir: 1, laneCoord: -446.5, startOffset: 160, speed: 14.5, minBound: -330, maxBound: 220 },
 ];
 
-function MovingTrafficContent() {
+function MovingTrafficContent({ config }: { config: TrafficConfig }) {
   const carBp = useNormalizedVehicle('./models/volvo_v50/scene.gltf', 4.5);
   const cityBusBp = useNormalizedVehicle('./models/city_bus/scene.gltf', 10.2);
   const isuzuBusBp = useNormalizedVehicle('./models/isuzu_bus/scene.gltf', 10.5);
@@ -98,10 +112,11 @@ function MovingTrafficContent() {
   const offsets = useRef<number[]>(TRAFFIC_LANES.map((v) => v.startOffset));
 
   useFrame((_, rawDelta) => {
-    const dt = Math.min(rawDelta, 0.05);
+    if (config.paused) return;
+    const dt = Math.min(rawDelta, 0.05) * config.speedMultiplier;
     TRAFFIC_LANES.forEach((v, i) => {
       const grp = refs.current[i];
-      if (!grp) return;
+      if (!grp || !grp.visible) return;
       let posVal = offsets.current[i] + v.dir * v.speed * dt;
       if (v.dir === 1 && posVal > v.maxBound) posVal = v.minBound;
       if (v.dir === -1 && posVal < v.minBound) posVal = v.maxBound;
@@ -118,15 +133,22 @@ function MovingTrafficContent() {
   return (
     <group>
       {TRAFFIC_LANES.map((v, i) => {
+        const matchesFilter =
+          config.filter === 'all' ||
+          (config.filter === 'car' && v.kind === 'car') ||
+          (config.filter === 'bus' && v.kind !== 'car');
+        const visible = i < config.density && matchesFilter;
+
         const bp =
           v.kind === 'car' ? carBp : v.kind === 'city_bus' ? cityBusBp : isuzuBusBp;
         const rotY =
           v.axis === 'x' ? (v.dir === 1 ? Math.PI / 2 : -Math.PI / 2) : v.dir === 1 ? 0 : Math.PI;
         const initPos: [number, number, number] =
-          v.axis === 'x' ? [v.startOffset, 0.06, v.laneCoord] : [v.laneCoord, 0.06, v.startOffset];
+          v.axis === 'x' ? [offsets.current[i], 0.06, v.laneCoord] : [v.laneCoord, 0.06, offsets.current[i]];
         return (
           <group
             key={i}
+            visible={visible}
             ref={(el) => {
               refs.current[i] = el;
             }}
@@ -140,10 +162,10 @@ function MovingTrafficContent() {
   );
 }
 
-export function ExternalTraffic() {
+export function ExternalTraffic({ config }: { config: TrafficConfig }) {
   return (
     <Suspense fallback={null}>
-      <MovingTrafficContent />
+      <MovingTrafficContent config={config} />
     </Suspense>
   );
 }

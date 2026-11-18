@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Building2,
+  CarFront,
   Check,
   Compass,
   Download,
@@ -11,6 +12,7 @@ import {
   MapPin,
   MousePointerClick,
   Orbit,
+  Pause,
   Pencil,
   Play,
   Redo2,
@@ -24,6 +26,7 @@ import {
   X,
 } from 'lucide-react';
 import { TreeDisplayStyle } from './components/CampusFoliage';
+import { TrafficConfig } from './components/ExternalTraffic';
 import { MobileJoystickInput, WalkerCharacter } from './components/GirlWalker';
 import { MobileJoystick } from './components/MobileJoystick';
 import { CameraMode, DragKind, SceneRoot } from './components/SceneRoot';
@@ -172,6 +175,13 @@ export function App() {
   const [plantSpecies, setPlantSpecies] = useState<TreeSpecies>('oak');
 
   const [showDirectory, setShowDirectory] = useState(false);
+  const [showTrafficPanel, setShowTrafficPanel] = useState(false);
+  const [trafficConfig, setTrafficConfig] = useState<TrafficConfig>({
+    paused: false,
+    speedMultiplier: 1.0,
+    density: 10,
+    filter: 'all',
+  });
   const [yawDeg, setYawDeg] = useState(0);
   const [autoOrbit, setAutoOrbit] = useState(false);
   const [autoTour, setAutoTour] = useState(false);
@@ -344,6 +354,7 @@ export function App() {
         cameraMode={cameraMode}
         walkerCharacter={walkerCharacter}
         mobileInputRef={mobileInputRef}
+        trafficConfig={trafficConfig}
         autoOrbit={autoOrbit}
         editMode={editMode}
         clickToMove={clickToMove}
@@ -391,7 +402,7 @@ export function App() {
             武汉外国语学校 · 3D 数字校园
           </h1>
           <p className="text-[11px] text-slate-400">
-            Wuhan Foreign Languages School · Phase 11 Real Traffic & CVE Sky
+            Wuhan Foreign Languages School · Phase 12 Urban Context & Traffic UI
           </p>
         </div>
       </div>
@@ -529,6 +540,18 @@ export function App() {
         >
           {autoTour ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 text-sky-400" />}
           <span className="hidden sm:inline">{autoTour ? '停止导览' : '自动导览'}</span>
+        </button>
+
+        <button
+          onClick={() => setShowTrafficPanel((v) => !v)}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border backdrop-blur-md shadow-lg transition cursor-pointer ${
+            showTrafficPanel
+              ? 'bg-indigo-500 text-white border-indigo-300'
+              : 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border-slate-700/70'
+          }`}
+        >
+          <CarFront className="w-3.5 h-3.5" />
+          <span className="hidden md:inline">车辆控制</span>
         </button>
 
         <button
@@ -776,6 +799,122 @@ export function App() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Expandable Traffic Control Panel */}
+      {showTrafficPanel && (
+        <div className="absolute top-20 right-4 z-10 w-72 bg-slate-900/92 backdrop-blur-md border border-indigo-500/50 rounded-2xl p-4 shadow-2xl">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+            <div className="flex items-center gap-2">
+              <CarFront className="w-4 h-4 text-indigo-400" />
+              <span className="text-xs font-bold text-indigo-200">校外车流控制面板</span>
+            </div>
+            <button
+              onClick={() => setShowTrafficPanel(false)}
+              className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-3 text-xs">
+            {/* Pause / Resume */}
+            <button
+              onClick={() =>
+                setTrafficConfig((c) => ({ ...c, paused: !c.paused }))
+              }
+              className={`w-full flex items-center justify-center gap-1.5 py-2 rounded-xl font-medium transition cursor-pointer ${
+                trafficConfig.paused
+                  ? 'bg-emerald-500 text-slate-950'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+              }`}
+            >
+              {trafficConfig.paused ? (
+                <>
+                  <Play className="w-3.5 h-3.5" />
+                  <span>恢复车流运行</span>
+                </>
+              ) : (
+                <>
+                  <Pause className="w-3.5 h-3.5" />
+                  <span>暂停全部车辆</span>
+                </>
+              )}
+            </button>
+
+            {/* Speed Multiplier */}
+            <label className="block">
+              <span className="text-slate-400 flex justify-between mb-1">
+                <span>车流速度</span>
+                <span className="text-indigo-300 font-mono">
+                  {trafficConfig.speedMultiplier.toFixed(1)}×
+                </span>
+              </span>
+              <input
+                type="range"
+                min={0.2}
+                max={3.0}
+                step={0.1}
+                value={trafficConfig.speedMultiplier}
+                onChange={(e) =>
+                  setTrafficConfig((c) => ({
+                    ...c,
+                    speedMultiplier: parseFloat(e.target.value),
+                  }))
+                }
+                className="w-full accent-indigo-400 cursor-pointer"
+              />
+            </label>
+
+            {/* Vehicle Density */}
+            <label className="block">
+              <span className="text-slate-400 flex justify-between mb-1">
+                <span>车辆数量</span>
+                <span className="text-indigo-300 font-mono">{trafficConfig.density} 辆</span>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={16}
+                step={1}
+                value={trafficConfig.density}
+                onChange={(e) =>
+                  setTrafficConfig((c) => ({
+                    ...c,
+                    density: parseInt(e.target.value, 10),
+                  }))
+                }
+                className="w-full accent-indigo-400 cursor-pointer"
+              />
+            </label>
+
+            {/* Vehicle Type Filter */}
+            <div>
+              <span className="text-slate-400 block mb-1.5">车型筛选</span>
+              <div className="flex gap-1.5">
+                {(
+                  [
+                    { id: 'all', label: '全部车辆' },
+                    { id: 'bus', label: '仅公交' },
+                    { id: 'car', label: '仅轿车' },
+                  ] as { id: TrafficConfig['filter']; label: string }[]
+                ).map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setTrafficConfig((c) => ({ ...c, filter: f.id }))}
+                    className={`flex-1 py-1.5 rounded-lg text-[11px] font-medium transition cursor-pointer ${
+                      trafficConfig.filter === f.id
+                        ? 'bg-indigo-500 text-white'
+                        : 'bg-slate-800 text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
